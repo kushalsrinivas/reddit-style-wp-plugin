@@ -378,3 +378,4 @@ GPL2 - Same as WordPress
 Need help? Found a bug? Want to contribute? Let us know!
 
 # reddit-style-wp-plugin
+# reddit-style-wp-plugin
