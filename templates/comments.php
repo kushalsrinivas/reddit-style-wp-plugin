@@ -1,0 +1,176 @@
+<?php
+/**
+ * Reddit-Style Comments Template
+ * Features threaded replies and voting
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+if (post_password_required()) {
+    return;
+}
+
+$rsp = Reddit_Style_Posts::get_instance();
+?>
+
+<div id="comments" class="rsp-comments">
+    
+    <?php if (have_comments()): ?>
+        <ul class="rsp-comment-list">
+            <?php
+            wp_list_comments(array(
+                'style' => 'ul',
+                'callback' => 'rsp_custom_comment',
+                'max_depth' => 5,
+                'avatar_size' => 40,
+            ));
+            ?>
+        </ul>
+
+        <?php
+        // Comment pagination
+        if (get_comment_pages_count() > 1 && get_option('page_comments')):
+        ?>
+            <nav class="rsp-comment-navigation">
+                <div class="nav-previous"><?php previous_comments_link(__('← Older Comments', 'reddit-style-posts')); ?></div>
+                <div class="nav-next"><?php next_comments_link(__('Newer Comments →', 'reddit-style-posts')); ?></div>
+            </nav>
+        <?php endif; ?>
+
+    <?php endif; ?>
+
+    <?php if (!comments_open() && get_comments_number() && post_type_supports(get_post_type(), 'comments')): ?>
+        <p class="rsp-no-comments"><?php _e('Comments are closed.', 'reddit-style-posts'); ?></p>
+    <?php endif; ?>
+
+    <?php
+    // Comment form
+    if (comments_open()):
+        $commenter = wp_get_current_commenter();
+        $req = get_option('require_name_email');
+        $aria_req = ($req ? " aria-required='true'" : '');
+        
+        comment_form(array(
+            'class_container' => 'rsp-comment-respond',
+            'class_form' => 'rsp-comment-form',
+            'title_reply' => __('Add a Comment', 'reddit-style-posts'),
+            'title_reply_to' => __('Reply to %s', 'reddit-style-posts'),
+            'cancel_reply_link' => __('Cancel Reply', 'reddit-style-posts'),
+            'label_submit' => __('Post Comment', 'reddit-style-posts'),
+            'comment_field' => '<p class="comment-form-comment"><label for="comment">' . _x('Comment', 'noun', 'reddit-style-posts') . '</label><textarea id="comment" name="comment" cols="45" rows="6" aria-required="true" placeholder="What are your thoughts?"></textarea></p>',
+            'fields' => array(
+                'author' => '<p class="comment-form-author"><label for="author">' . __('Name', 'reddit-style-posts') . ($req ? ' <span class="required">*</span>' : '') . '</label><input id="author" name="author" type="text" value="' . esc_attr($commenter['comment_author']) . '" size="30"' . $aria_req . ' /></p>',
+                'email' => '<p class="comment-form-email"><label for="email">' . __('Email', 'reddit-style-posts') . ($req ? ' <span class="required">*</span>' : '') . '</label><input id="email" name="email" type="email" value="' . esc_attr($commenter['comment_author_email']) . '" size="30"' . $aria_req . ' /></p>',
+                'url' => '<p class="comment-form-url"><label for="url">' . __('Website', 'reddit-style-posts') . '</label><input id="url" name="url" type="url" value="' . esc_attr($commenter['comment_author_url']) . '" size="30" /></p>',
+            ),
+        ));
+    endif;
+    ?>
+
+</div>
+
+<?php
+/**
+ * Custom comment callback function
+ */
+function rsp_custom_comment($comment, $args, $depth) {
+    $rsp = Reddit_Style_Posts::get_instance();
+    $vote_counts = $rsp->get_vote_counts(get_the_ID(), $comment->comment_ID);
+    $user_vote = $rsp->get_user_vote(get_the_ID(), $comment->comment_ID);
+    $enable_voting = get_option('rsp_enable_voting', '1') === '1';
+    $show_vote_count = get_option('rsp_show_vote_count', '1') === '1';
+    
+    $GLOBALS['comment'] = $comment;
+    ?>
+    <li <?php comment_class('rsp-comment'); ?> id="comment-<?php comment_ID(); ?>">
+        <article class="rsp-comment-body">
+            
+            <!-- Comment Voting -->
+            <?php if ($enable_voting): ?>
+            <div class="rsp-comment-voting">
+                <button class="rsp-vote-btn rsp-upvote <?php echo $user_vote === 'upvote' ? 'active' : ''; ?>" 
+                        data-post-id="<?php echo get_the_ID(); ?>"
+                        data-comment-id="<?php echo $comment->comment_ID; ?>" 
+                        data-vote-type="upvote"
+                        aria-label="Upvote comment">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 4l8 8h-6v8h-4v-8H4z"/>
+                    </svg>
+                </button>
+                
+                <?php if ($show_vote_count): ?>
+                <span class="rsp-vote-count" data-score="<?php echo $vote_counts['score']; ?>">
+                    <?php echo number_format_i18n($vote_counts['score']); ?>
+                </span>
+                <?php endif; ?>
+                
+                <button class="rsp-vote-btn rsp-downvote <?php echo $user_vote === 'downvote' ? 'active' : ''; ?>" 
+                        data-post-id="<?php echo get_the_ID(); ?>"
+                        data-comment-id="<?php echo $comment->comment_ID; ?>" 
+                        data-vote-type="downvote"
+                        aria-label="Downvote comment">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 20l-8-8h6V4h4v8h6z"/>
+                    </svg>
+                </button>
+            </div>
+            <?php endif; ?>
+            
+            <!-- Comment Content -->
+            <div class="rsp-comment-content-wrapper">
+                
+                <!-- Comment Meta -->
+                <div class="rsp-comment-meta">
+                    <div class="rsp-comment-author-avatar">
+                        <?php echo get_avatar($comment, 32); ?>
+                    </div>
+                    <div class="rsp-comment-info">
+                        <span class="rsp-comment-author-name">
+                            <?php echo get_comment_author_link(); ?>
+                        </span>
+                        <?php if ($comment->user_id == get_post()->post_author): ?>
+                            <span class="rsp-author-badge">OP</span>
+                        <?php endif; ?>
+                        <span class="rsp-comment-date">
+                            <?php echo human_time_diff(get_comment_time('U'), current_time('timestamp')) . ' ago'; ?>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Comment Text -->
+                <div class="rsp-comment-text">
+                    <?php if ($comment->comment_approved == '0'): ?>
+                        <em class="rsp-comment-awaiting-moderation"><?php _e('Your comment is awaiting moderation.', 'reddit-style-posts'); ?></em>
+                    <?php endif; ?>
+                    <?php comment_text(); ?>
+                </div>
+                
+                <!-- Comment Actions -->
+                <div class="rsp-comment-actions">
+                    <?php
+                    comment_reply_link(array_merge($args, array(
+                        'add_below' => 'comment',
+                        'depth' => $depth,
+                        'max_depth' => $args['max_depth'],
+                        'before' => '<button class="rsp-reply-btn">',
+                        'after' => '</button>',
+                    )));
+                    ?>
+                    
+                    <?php if (current_user_can('edit_comment', $comment->comment_ID)): ?>
+                        <?php edit_comment_link(__('Edit', 'reddit-style-posts'), '<button class="rsp-edit-btn">', '</button>'); ?>
+                    <?php endif; ?>
+                </div>
+                
+            </div>
+        </article>
+        
+        <?php
+        // Children comments will be automatically nested by wp_list_comments
+        ?>
+    <?php
+    // Note: </li> is automatically closed by WordPress
+}
+
