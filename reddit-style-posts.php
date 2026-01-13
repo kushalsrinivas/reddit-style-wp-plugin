@@ -54,8 +54,8 @@ class Reddit_Style_Posts {
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         
-        // Template override for single posts
-        add_filter('template_include', array($this, 'override_post_template'));
+        // Inject Reddit-style elements into existing theme
+        add_filter('the_content', array($this, 'inject_reddit_elements'), 10);
         
         // Comments modifications
         add_filter('comments_template', array($this, 'custom_comments_template'));
@@ -298,16 +298,137 @@ class Reddit_Style_Posts {
     }
     
     /**
-     * Override single post template
+     * Inject Reddit-style elements into post content
      */
-    public function override_post_template($template) {
-        if (is_single() && get_post_type() === 'post') {
-            $custom_template = RSP_PLUGIN_DIR . 'templates/single-post.php';
-            if (file_exists($custom_template)) {
-                return $custom_template;
-            }
+    public function inject_reddit_elements($content) {
+        // Only on single post pages
+        if (!is_single() || get_post_type() !== 'post' || !in_the_loop() || !is_main_query()) {
+            return $content;
         }
-        return $template;
+        
+        $post_id = get_the_ID();
+        $vote_counts = $this->get_vote_counts($post_id);
+        $user_vote = $this->get_user_vote($post_id);
+        $enable_voting = get_option('rsp_enable_voting', '1') === '1';
+        $show_vote_count = get_option('rsp_show_vote_count', '1') === '1';
+        $enable_share = get_option('rsp_enable_share_buttons', '1') === '1';
+        $excerpt_length = get_option('rsp_excerpt_length', '150');
+        
+        // Start output buffering
+        ob_start();
+        ?>
+        
+        <div class="rsp-content-injection">
+            
+            <!-- Featured Image (if exists) -->
+            <?php if (has_post_thumbnail()): ?>
+            <div class="rsp-featured-image">
+                <?php the_post_thumbnail('large'); ?>
+            </div>
+            <?php endif; ?>
+            
+            <!-- Post Content with Read More Button -->
+            <div class="rsp-post-content">
+                <div class="rsp-excerpt" id="rsp-excerpt">
+                    <?php
+                    // Remove "..." to let the CSS fade effect handle the visual cutoff
+                    $excerpt = wp_trim_words($content, $excerpt_length, '');
+                    echo $excerpt;
+                    ?>
+                </div>
+                
+                <div class="rsp-full-content" id="rsp-full-content" style="display: none;">
+                    <?php echo $content; ?>
+                </div>
+                
+                <button class="rsp-read-more-btn" id="rsp-toggle-content">
+                    <span class="rsp-expand-text">Read More</span>
+                    <span class="rsp-collapse-text" style="display: none;">Show Less</span>
+                </button>
+            </div>
+            
+            <!-- Bottom 40% Space: Action Buttons -->
+            <div class="rsp-post-actions-wrapper">
+                <div class="rsp-post-actions">
+                    
+                    <!-- Upvote Button - Authentic Reddit Icon -->
+                    <?php if ($enable_voting): ?>
+                    <button class="rsp-action-btn rsp-vote-action rsp-upvote-action <?php echo $user_vote === 'upvote' ? 'active' : ''; ?>" 
+                            data-post-id="<?php echo $post_id; ?>" 
+                            data-vote-type="upvote"
+                            aria-label="Upvote">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.877 19h-1.754c-.108 0-.157-.005-.221-.027-.359-.109-.418-.452-.418-.796v-6.875h-3.486c-.192 0-.393-.024-.535-.142-.134-.111-.195-.296-.195-.488 0-.126.03-.261.088-.38l6.378-13.107c.076-.155.174-.282.305-.372.124-.086.283-.13.451-.13.165 0 .328.044.451.13.132.09.228.217.305.372l6.379 13.107c.058.119.087.254.087.38 0 .192-.062.377-.196.488-.142.118-.344.142-.535.142h-3.485v6.875c0 .344-.059.687-.418.796-.064.022-.112.027-.221.027z"/>
+                        </svg>
+                        <span class="rsp-action-label">
+                            <?php if ($show_vote_count): ?>
+                                <span class="rsp-vote-count" data-score="<?php echo $vote_counts['score']; ?>">
+                                    <?php echo number_format_i18n($vote_counts['score']); ?>
+                                </span>
+                            <?php else: ?>
+                                Upvote
+                            <?php endif; ?>
+                        </span>
+                    </button>
+                    <?php endif; ?>
+                    
+                    <!-- Comment Button - Authentic Reddit Icon -->
+                    <button class="rsp-action-btn rsp-comment-btn" onclick="document.getElementById('rsp-comments').scrollIntoView({behavior: 'smooth'})">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.008 0c6.628 0 12 4.596 12 10.283 0 5.686-5.372 10.282-12 10.282-1.197 0-2.35-.153-3.428-.44l-5.562 3.146c-.36.203-.806-.066-.806-.486v-4.593c-2.67-1.773-4.212-4.408-4.212-7.422 0-5.687 5.372-10.283 12.008-10.283zm-4.716 13.138c.557 0 1.008-.451 1.008-1.008 0-.557-.451-1.009-1.008-1.009-.556 0-1.008.452-1.008 1.009 0 .557.452 1.008 1.008 1.008zm4.716 0c.556 0 1.008-.451 1.008-1.008 0-.557-.452-1.009-1.008-1.009-.557 0-1.009.452-1.009 1.009 0 .557.452 1.008 1.009 1.008zm4.708 0c.556 0 1.008-.451 1.008-1.008 0-.557-.452-1.009-1.008-1.009-.557 0-1.008.452-1.008 1.009 0 .557.451 1.008 1.008 1.008z"/>
+                        </svg>
+                        <span class="rsp-action-label">
+                            <?php 
+                            $comment_count = get_comments_number();
+                            echo $comment_count . ' ' . _n('Comment', 'Comments', $comment_count, 'reddit-style-posts');
+                            ?>
+                        </span>
+                    </button>
+                    
+                    <!-- Share Button - Authentic Reddit Icon -->
+                    <?php if ($enable_share): ?>
+                    <button class="rsp-action-btn rsp-share-btn" id="rsp-share-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.162 0c-.924 0-1.758.359-2.385.995l-7.929 8.034c-1.26.03-2.395.488-3.283 1.288-.888.8-1.48 1.897-1.645 3.127-.03.223.135.426.359.426h1.748c.185 0 .344-.135.374-.315.179-.997.673-1.843 1.375-2.422.703-.579 1.555-.888 2.445-.888h.135l-.015.015 7.944 8.049c.612.621 1.461.995 2.385.995 1.867 0 3.383-1.516 3.383-3.383 0-.924-.359-1.758-.995-2.385l-3.353-3.353 3.338-3.338c.621-.612.995-1.461.995-2.385 0-1.867-1.516-3.383-3.383-3.383zm-7.222 14.436c-.389.03-.778.105-1.152.225h-.045c.09-.404.27-.768.539-1.062l3.772-3.817 1.305 1.305-3.772 3.817c-.21.21-.449.374-.703.494-.209.105-.434.18-.659.21-.03 0-.03.015-.045.015l-.015-.015c-.03-.015-.06-.015-.09-.015-.03 0-.045 0-.075.015-.03-.015-.045-.015-.06-.015zm7.207 1.455c.404-.389.868-.643 1.365-.748.015 0 .03 0 .03-.015.135-.03.27-.045.419-.045.09 0 .165.015.254.015.045 0 .09.015.12.015.135.015.27.045.389.075l.015.015c-.015 0-.015 0 0 0 .015 0 .015 0 0 0 .09.03.18.06.254.09 0 .015.015.015.015.015.015 0 .015.015.03.015.494.225.913.599 1.197 1.062l-3.818 3.817-1.305-1.305 3.832-3.832.015-.015c-.419.015-.823-.09-1.182-.359z"/>
+                        </svg>
+                        <span class="rsp-action-label">Share</span>
+                    </button>
+                    
+                    <!-- Share Dropdown -->
+                    <div class="rsp-share-dropdown" id="rsp-share-dropdown" style="display: none;">
+                        <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode(get_permalink()); ?>&text=<?php echo urlencode(get_the_title()); ?>" 
+                           target="_blank" class="rsp-share-option">
+                            Twitter
+                        </a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode(get_permalink()); ?>" 
+                           target="_blank" class="rsp-share-option">
+                            Facebook
+                        </a>
+                        <a href="https://www.reddit.com/submit?url=<?php echo urlencode(get_permalink()); ?>&title=<?php echo urlencode(get_the_title()); ?>" 
+                           target="_blank" class="rsp-share-option">
+                            Reddit
+                        </a>
+                        <button class="rsp-share-option" id="rsp-copy-link">
+                            Copy Link
+                        </button>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            
+            <!-- Comments Section -->
+            <div class="rsp-comments-container" id="rsp-comments">
+                <?php
+                // Comments will be loaded via the custom template
+                ?>
+            </div>
+        </div>
+        
+        <?php
+        $injected_content = ob_get_clean();
+        
+        // Return empty string as we're injecting everything
+        return $injected_content;
     }
     
     /**

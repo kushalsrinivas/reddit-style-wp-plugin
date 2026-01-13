@@ -1,164 +1,29 @@
 /**
- * Reddit Style Posts - Main Stylesheet
- * Mobile-first responsive design
+ * Reddit Style Posts - Mobile-First Design
+ * Dynamically inherits theme colors for seamless integration
+ * Authentic Reddit-style icons and interactions
+ * Priority: Mobile optimization
  */
 
 /* ==========================================================================
-   Reset & Base Styles
+   Content Injection Container - Theme Color Inheritance
    ========================================================================== */
 
-.rsp-container {
-  max-width: 100%;
+.rsp-content-injection {
+  width: 100%;
   margin: 0 auto;
-  background-color: #dae0e6;
-  min-height: 100vh;
-  padding: 0;
-}
-
-.rsp-post {
-  background-color: #ffffff;
-  margin: 0 0 16px 0;
-  display: flex;
-  position: relative;
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-family: inherit;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 /* ==========================================================================
-   Voting Section (Left Sidebar)
+   Featured Image - Mobile First
    ========================================================================== */
 
-.rsp-voting {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #f8f9fa;
-  padding: 8px 4px;
-  width: 40px;
-  flex-shrink: 0;
-  border-right: 1px solid #edeff1;
-}
-
-.rsp-vote-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #878a8c;
-  transition: all 0.2s ease;
-}
-
-.rsp-vote-btn:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 2px;
-}
-
-.rsp-vote-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-.rsp-vote-btn.rsp-upvote.active {
-  color: #ff4500;
-}
-
-.rsp-vote-btn.rsp-downvote.active {
-  color: #7193ff;
-}
-
-.rsp-vote-count {
-  font-size: 12px;
-  font-weight: 700;
-  color: #1a1a1b;
-  margin: 4px 0;
-  min-width: 24px;
-  text-align: center;
-  line-height: 1.2;
-}
-
-/* ==========================================================================
-   Content Wrapper
-   ========================================================================== */
-
-.rsp-content-wrapper {
-  flex: 1;
-  padding: 8px 12px;
-  overflow: hidden;
-}
-
-/* Post Header */
-.rsp-post-header {
-  margin-bottom: 8px;
-}
-
-.rsp-post-meta {
-  font-size: 12px;
-  color: #787c7e;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  line-height: 1.4;
-}
-
-.rsp-post-meta span::after {
-  content: "•";
-  margin-left: 8px;
-  color: #ccc;
-}
-
-.rsp-post-meta span:last-child::after {
-  content: "";
-  margin: 0;
-}
-
-.rsp-post-meta a {
-  color: #1a1a1b;
-  text-decoration: none;
-  font-weight: 700;
-}
-
-.rsp-post-meta a:hover {
-  text-decoration: underline;
-}
-
-.rsp-post-meta strong {
-  color: #1a1a1b;
-  font-weight: 700;
-}
-
-.rsp-post-author a {
-  color: #1a1a1b;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.rsp-post-author a:hover {
-  text-decoration: underline;
-}
-
-/* Post Title */
-.rsp-post-title {
-  margin: 0 0 12px 0;
-}
-
-.rsp-post-title h1 {
-  font-size: 18px;
-  line-height: 1.4;
-  font-weight: 500;
-  color: #1c1c1c;
-  margin: 0;
-}
-
-/* Featured Image */
 .rsp-featured-image {
-  margin: 12px 0;
+  margin: 0 0 20px 0;
   border-radius: 4px;
   overflow: hidden;
 }
@@ -167,209 +32,364 @@
   width: 100%;
   height: auto;
   display: block;
-  max-height: 400px;
   object-fit: cover;
 }
 
-/* Post Content */
+/* ==========================================================================
+   Post Content - Mobile First
+   ========================================================================== */
+
 .rsp-post-content {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #1c1c1c;
-  margin: 12px 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  margin-bottom: 24px;
 }
 
 .rsp-post-content p {
-  margin: 0 0 12px 0;
+  margin: 0 0 16px 0;
 }
 
 .rsp-post-content img {
   max-width: 100%;
   height: auto;
+  border-radius: 4px;
 }
 
-.rsp-excerpt,
+.rsp-excerpt {
+  margin-bottom: 16px;
+  position: relative;
+  max-height: 350px;
+  overflow: hidden;
+  line-height: 1.6;
+}
+
+/* Fade effect at bottom of excerpt - Reddit style */
+.rsp-excerpt::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(to bottom, transparent 0%, currentColor 100%);
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+/* Dark mode fade - automatically uses dark background */
+@media (prefers-color-scheme: dark) {
+  .rsp-excerpt::after {
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.6) 50%,
+      rgba(0, 0, 0, 0.95) 100%
+    );
+  }
+}
+
+/* For custom theme backgrounds - JavaScript can set this */
+.rsp-content-injection[data-bg-color] .rsp-excerpt::after {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--rsp-bg-fade, rgba(255, 255, 255, 0.6)) 50%,
+    var(--rsp-bg-solid, rgba(255, 255, 255, 0.95)) 100%
+  );
+}
+
 .rsp-full-content {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
-/* Read More Button */
+/* Read More Button - Reddit Style (Mobile First) */
 .rsp-read-more-btn {
   background: #0079d3;
   color: #ffffff;
   border: none;
-  border-radius: 20px;
-  padding: 8px 20px;
+  border-radius: 9999px;
+  padding: 10px 24px;
   font-size: 14px;
   font-weight: 700;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
   width: 100%;
-  margin: 12px 0;
+  max-width: 300px;
+  display: block;
+  margin: 16px auto 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .rsp-read-more-btn:hover {
-  background: #0060a8;
+  background: #1484d6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 121, 211, 0.3);
 }
 
-/* Post Actions */
+.rsp-read-more-btn:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================================================
+   Post Actions - Bottom 40% Space (Mobile First)
+   ========================================================================== */
+
+.rsp-post-actions-wrapper {
+  background: transparent;
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  padding: 12px 0;
+  margin: 32px 0;
+}
+
 .rsp-post-actions {
   display: flex;
   gap: 8px;
-  margin: 12px 0;
+  justify-content: space-around;
+  align-items: center;
   position: relative;
 }
 
+/* Action Buttons - Mobile First */
 .rsp-action-btn {
-  background: none;
+  background: transparent;
   border: none;
-  color: #878a8c;
+  color: inherit;
+  opacity: 0.8;
   font-size: 12px;
   font-weight: 700;
-  padding: 6px 8px;
-  border-radius: 2px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  padding: 8px 12px;
+  border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 4px;
-  transition: background 0.2s ease;
+  gap: 6px;
+  transition: all 0.2s ease;
+  flex: 1;
+  justify-content: center;
+  max-width: 150px;
 }
 
-.rsp-action-btn:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+.rsp-action-btn:hover,
+.rsp-action-btn:active {
+  background: rgba(128, 128, 128, 0.1);
+  opacity: 1;
 }
 
 .rsp-action-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.rsp-action-label {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Upvote Button - Reddit Orange */
+.rsp-upvote-action {
+  color: #878a8c;
+}
+
+.rsp-upvote-action:hover,
+.rsp-upvote-action:active {
+  background: rgba(255, 69, 0, 0.1);
+  color: #ff4500;
+}
+
+.rsp-upvote-action.active {
+  color: #ff4500;
+  opacity: 1;
+}
+
+.rsp-upvote-action.active svg {
+  transform: scale(1.1);
+}
+
+/* Comment Button */
+.rsp-comment-btn {
+  color: inherit;
+  opacity: 0.8;
+}
+
+.rsp-comment-btn:hover,
+.rsp-comment-btn:active {
+  opacity: 1;
+  background: rgba(128, 128, 128, 0.1);
+}
+
+/* Share Button */
+.rsp-share-btn {
+  color: inherit;
+  opacity: 0.8;
+}
+
+.rsp-share-btn:hover,
+.rsp-share-btn:active {
+  opacity: 1;
+  background: rgba(128, 128, 128, 0.1);
 }
 
 /* Share Dropdown */
 .rsp-share-dropdown {
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   right: 0;
-  background: #ffffff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  margin-top: 4px;
+  background: var(--rsp-dropdown-bg, #ffffff);
+  color: var(--rsp-dropdown-text, #1c1c1c);
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 8px;
   padding: 8px 0;
-  min-width: 150px;
+  min-width: 160px;
   z-index: 1000;
+}
+
+@media (prefers-color-scheme: dark) {
+  .rsp-share-dropdown {
+    --rsp-dropdown-bg: #1c1c1c;
+    --rsp-dropdown-text: #d7dadc;
+  }
 }
 
 .rsp-share-option {
   display: block;
-  padding: 8px 16px;
-  color: #1c1c1c;
+  padding: 12px 16px;
+  color: inherit;
   text-decoration: none;
   font-size: 14px;
+  font-weight: 500;
   background: none;
   border: none;
   width: 100%;
   text-align: left;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .rsp-share-option:hover {
-  background-color: #f6f7f8;
-}
-
-/* Post Tags */
-.rsp-post-tags {
-  margin: 12px 0 8px 0;
-  font-size: 12px;
-}
-
-.rsp-post-tags a {
-  background-color: #f6f7f8;
-  color: #0079d3;
-  padding: 4px 8px;
-  border-radius: 2px;
-  text-decoration: none;
-  margin-right: 4px;
-  display: inline-block;
-  margin-bottom: 4px;
-}
-
-.rsp-post-tags a:hover {
-  background-color: #e9ecef;
+  background: rgba(128, 128, 128, 0.1);
 }
 
 /* ==========================================================================
-   Comments Section
+   Comments Section - Mobile First
    ========================================================================== */
 
 .rsp-comments-container {
-  background-color: #ffffff;
-  border-radius: 4px;
-  padding: 16px 12px;
-  margin: 16px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 40px 0 0 0;
 }
 
-.rsp-comments-header {
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #edeff1;
+/* Comment form at top styling */
+.rsp-comment-form-top {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
 }
 
-.rsp-comments-header h2 {
+.rsp-comment-form-top h3 {
   font-size: 16px;
-  font-weight: 500;
-  color: #1c1c1c;
-  margin: 0 0 4px 0;
-}
-
-.rsp-comments-subtitle {
-  font-size: 13px;
-  color: #7c7c7c;
-  margin: 0;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: inherit;
+  font-family: inherit;
 }
 
 /* Comment List */
 .rsp-comment-list {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 0 0 24px 0;
 }
 
 .rsp-comment {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .rsp-comment-body {
   display: flex;
   gap: 8px;
+  padding: 12px;
+  background: rgba(128, 128, 128, 0.03);
+  border-radius: 8px;
+  transition: background 0.2s ease;
 }
 
-/* Comment Voting */
+.rsp-comment-body:hover {
+  background: rgba(128, 128, 128, 0.06);
+}
+
+/* Comment Voting - Mobile Optimized */
 .rsp-comment-voting {
   display: flex;
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
-  width: 28px;
+  width: 32px;
   padding: 4px 0;
 }
 
 .rsp-comment-voting .rsp-vote-btn {
-  width: 20px;
-  height: 20px;
-  padding: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #878a8c;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.rsp-comment-voting .rsp-vote-btn:hover,
+.rsp-comment-voting .rsp-vote-btn:active {
+  background: rgba(128, 128, 128, 0.1);
 }
 
 .rsp-comment-voting .rsp-vote-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+}
+
+.rsp-comment-voting .rsp-vote-btn.rsp-upvote:hover,
+.rsp-comment-voting .rsp-vote-btn.rsp-upvote:active {
+  color: #ff4500;
+}
+
+.rsp-comment-voting .rsp-vote-btn.rsp-upvote.active {
+  color: #ff4500;
+}
+
+.rsp-comment-voting .rsp-vote-btn.rsp-downvote:hover,
+.rsp-comment-voting .rsp-vote-btn.rsp-downvote:active {
+  color: #7193ff;
+}
+
+.rsp-comment-voting .rsp-vote-btn.rsp-downvote.active {
+  color: #7193ff;
 }
 
 .rsp-comment-voting .rsp-vote-count {
-  font-size: 11px;
-  margin: 2px 0;
+  font-size: 12px;
+  margin: 4px 0;
   font-weight: 700;
-  color: #1a1a1b;
+  color: inherit;
+  min-width: 28px;
+  text-align: center;
 }
 
 /* Comment Content */
@@ -382,13 +402,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
 }
 
 .rsp-comment-author-avatar img {
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
 }
 
 .rsp-comment-info {
@@ -402,11 +423,11 @@
 
 .rsp-comment-author-name {
   font-weight: 700;
-  color: #1a1a1b;
+  color: inherit;
 }
 
 .rsp-comment-author-name a {
-  color: #1a1a1b;
+  color: inherit;
   text-decoration: none;
   font-weight: 700;
 }
@@ -416,23 +437,26 @@
 }
 
 .rsp-author-badge {
-  background-color: #0079d3;
+  background: #0079d3;
   color: #ffffff;
-  padding: 1px 4px;
-  border-radius: 2px;
+  padding: 2px 6px;
+  border-radius: 3px;
   font-size: 10px;
   font-weight: 700;
+  text-transform: uppercase;
 }
 
 .rsp-comment-date {
-  color: #7c7c7c;
+  color: inherit;
+  opacity: 0.5;
+  font-size: 12px;
 }
 
 .rsp-comment-text {
   font-size: 14px;
-  line-height: 1.5;
-  color: #1c1c1c;
-  margin-bottom: 6px;
+  line-height: 1.6;
+  color: inherit;
+  margin-bottom: 8px;
   word-wrap: break-word;
 }
 
@@ -441,6 +465,7 @@
   font-size: 12px;
   display: block;
   margin-bottom: 8px;
+  font-style: italic;
 }
 
 .rsp-comment-actions {
@@ -452,41 +477,50 @@
 .rsp-edit-btn {
   background: none;
   border: none;
-  color: #878a8c;
+  color: inherit;
+  opacity: 0.5;
   font-size: 12px;
   font-weight: 700;
   padding: 0;
   cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 .rsp-reply-btn:hover,
-.rsp-edit-btn:hover {
+.rsp-reply-btn:active,
+.rsp-edit-btn:hover,
+.rsp-edit-btn:active {
+  opacity: 1;
   text-decoration: underline;
 }
 
-/* Nested Comments */
+/* Nested Comments - Mobile Optimized */
 .rsp-comment .children {
   list-style: none;
-  padding-left: 28px;
+  padding-left: 24px;
   margin-top: 12px;
+  margin-left: 8px;
+  border-left: 2px solid rgba(128, 128, 128, 0.15);
 }
 
-/* Comment Form */
+/* Comment Form - Mobile First */
 .rsp-comment-respond {
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
 .rsp-comment-respond h3 {
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 12px;
-  color: #1c1c1c;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: inherit;
+  font-family: inherit;
 }
 
 .rsp-comment-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .rsp-comment-form p {
@@ -495,10 +529,11 @@
 
 .rsp-comment-form label {
   display: block;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  color: #1c1c1c;
-  margin-bottom: 4px;
+  color: inherit;
+  margin-bottom: 6px;
+  font-family: inherit;
 }
 
 .rsp-comment-form input[type="text"],
@@ -506,167 +541,78 @@
 .rsp-comment-form input[type="url"],
 .rsp-comment-form textarea {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 12px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 8px;
   font-size: 14px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  transition: border-color 0.2s ease;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: inherit;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .rsp-comment-form input:focus,
 .rsp-comment-form textarea:focus {
   outline: none;
   border-color: #0079d3;
+  box-shadow: 0 0 0 3px rgba(0, 121, 211, 0.1);
 }
 
 .rsp-comment-form textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 120px;
 }
 
 .rsp-comment-form input[type="submit"] {
   background: #0079d3;
   color: #ffffff;
   border: none;
-  border-radius: 20px;
-  padding: 8px 24px;
+  border-radius: 9999px;
+  padding: 12px 32px;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  align-self: flex-start;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  width: 100%;
+  max-width: 200px;
 }
 
 .rsp-comment-form input[type="submit"]:hover {
-  background: #0060a8;
+  background: #1484d6;
+}
+
+.rsp-comment-form input[type="submit"]:active {
+  transform: scale(0.98);
 }
 
 .required {
-  color: #ff0000;
+  color: #ff4500;
 }
 
 /* Comment Navigation */
 .rsp-comment-navigation {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
-  padding-top: 12px;
-  border-top: 1px solid #edeff1;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(128, 128, 128, 0.15);
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .rsp-comment-navigation a {
   color: #0079d3;
   text-decoration: none;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .rsp-comment-navigation a:hover {
   text-decoration: underline;
-}
-
-/* ==========================================================================
-   Responsive Design - Tablet
-   ========================================================================== */
-
-@media (min-width: 768px) {
-  .rsp-container {
-    max-width: 740px;
-    padding: 16px;
-  }
-
-  .rsp-voting {
-    width: 48px;
-    padding: 12px 8px;
-  }
-
-  .rsp-content-wrapper {
-    padding: 12px 16px;
-  }
-
-  .rsp-post-title h1 {
-    font-size: 20px;
-  }
-
-  .rsp-post-content {
-    font-size: 15px;
-  }
-
-  .rsp-comments-container {
-    padding: 20px;
-  }
-
-  .rsp-comments-header h2 {
-    font-size: 18px;
-  }
-
-  .rsp-comment .children {
-    padding-left: 40px;
-  }
-}
-
-/* ==========================================================================
-   Responsive Design - Desktop
-   ========================================================================== */
-
-@media (min-width: 1024px) {
-  .rsp-container {
-    max-width: 980px;
-    padding: 24px;
-  }
-
-  .rsp-voting {
-    width: 56px;
-    padding: 16px 12px;
-  }
-
-  .rsp-vote-btn {
-    width: 28px;
-    height: 28px;
-  }
-
-  .rsp-vote-count {
-    font-size: 14px;
-    font-weight: 700;
-  }
-
-  .rsp-content-wrapper {
-    padding: 16px 24px;
-  }
-
-  .rsp-post-title h1 {
-    font-size: 22px;
-  }
-
-  .rsp-post-content {
-    font-size: 16px;
-  }
-
-  .rsp-read-more-btn {
-    width: auto;
-    min-width: 200px;
-  }
-
-  .rsp-comments-container {
-    padding: 24px;
-  }
-
-  .rsp-comments-header h2 {
-    font-size: 20px;
-  }
-
-  .rsp-comment-voting {
-    width: 32px;
-  }
-
-  .rsp-comment-author-avatar img {
-    width: 32px;
-    height: 32px;
-  }
-
-  .rsp-comment-text {
-    font-size: 15px;
-  }
 }
 
 /* ==========================================================================
@@ -684,77 +630,160 @@
 
 .rsp-no-comments {
   text-align: center;
-  color: #7c7c7c;
+  color: inherit;
+  opacity: 0.6;
   font-style: italic;
-  padding: 20px;
+  padding: 40px 20px;
+  font-size: 14px;
+}
+
+.rsp-vote-count {
+  display: inline-block;
+  min-width: 30px;
+  text-align: center;
 }
 
 /* ==========================================================================
-   Dark Mode Support (Optional)
+   Responsive Design - Tablet (768px and up)
    ========================================================================== */
 
-@media (prefers-color-scheme: dark) {
-  .rsp-container {
-    background-color: #030303;
+@media (min-width: 768px) {
+  .rsp-featured-image {
+    margin-bottom: 24px;
+    border-radius: 8px;
   }
 
-  .rsp-post,
-  .rsp-comments-container {
-    background-color: #1a1a1b;
-    border: 1px solid #343536;
+  .rsp-post-content {
+    margin-bottom: 32px;
   }
 
-  .rsp-voting {
-    background-color: #1a1a1b;
+  .rsp-read-more-btn {
+    width: auto;
+    min-width: 200px;
   }
 
-  .rsp-vote-count {
-    color: #d7dadc !important;
+  .rsp-post-actions-wrapper {
+    padding: 16px 0;
   }
 
-  .rsp-post-title h1,
-  .rsp-post-content,
-  .rsp-comment-text,
-  .rsp-comments-header h2,
-  .rsp-comment-form label {
-    color: #d7dadc;
+  .rsp-post-actions {
+    gap: 16px;
+    justify-content: flex-start;
   }
 
-  .rsp-comment-author-name,
-  .rsp-comment-author-name a,
-  .rsp-post-meta strong,
-  .rsp-post-meta a,
-  .rsp-post-author a {
-    color: #d7dadc !important;
+  .rsp-action-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+    flex: 0 0 auto;
   }
 
-  .rsp-post-meta,
-  .rsp-comment-date,
+  .rsp-action-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .rsp-action-label {
+    font-size: 13px;
+  }
+
+  .rsp-comments-header h2 {
+    font-size: 20px;
+  }
+
   .rsp-comments-subtitle {
-    color: #818384;
+    font-size: 14px;
   }
 
-  .rsp-action-btn:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+  .rsp-comment .children {
+    padding-left: 40px;
+    margin-left: 12px;
   }
 
-  .rsp-comment-form input,
-  .rsp-comment-form textarea {
-    background-color: #1a1a1b;
-    border-color: #343536;
-    color: #d7dadc;
+  .rsp-comment-form input[type="submit"] {
+    width: auto;
+  }
+}
+
+/* ==========================================================================
+   Responsive Design - Desktop (1024px and up)
+   ========================================================================== */
+
+@media (min-width: 1024px) {
+  .rsp-featured-image img {
+    max-height: 500px;
   }
 
-  .rsp-share-dropdown {
-    background-color: #1a1a1b;
-    border-color: #343536;
+  .rsp-post-actions {
+    gap: 24px;
   }
 
-  .rsp-share-option {
-    color: #d7dadc;
+  .rsp-action-btn {
+    padding: 12px 24px;
+    font-size: 14px;
   }
 
-  .rsp-share-option:hover {
-    background-color: #272729;
+  .rsp-action-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .rsp-action-label {
+    font-size: 14px;
+  }
+
+  .rsp-comments-header h2 {
+    font-size: 22px;
+  }
+
+  .rsp-comment .children {
+    padding-left: 48px;
+  }
+}
+
+/* ==========================================================================
+   Performance & Accessibility
+   ========================================================================== */
+
+/* GPU acceleration */
+.rsp-action-btn,
+.rsp-vote-btn,
+.rsp-read-more-btn {
+  will-change: transform;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .rsp-action-btn,
+  .rsp-vote-btn {
+    padding: 12px;
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .rsp-post-actions-wrapper,
+  .rsp-share-dropdown,
+  .rsp-comment-voting {
+    display: none;
   }
 }

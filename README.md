@@ -1,381 +1,222 @@
 # Reddit Style Posts - WordPress Plugin
 
-## 🎯 Overview
+A WordPress plugin that adds Reddit-style voting and comments to your blog posts while preserving your theme's design.
 
-Transform your WordPress blog into a Reddit-style commenting powerhouse! This plugin replaces the default blog post template with a mobile-first, engagement-focused design that puts comments front and center.
+## Features
 
-## 🚀 Why This Plugin?
+✅ **Injection Mode** - Works with your existing theme (no template override)  
+✅ **Dark Theme Compatible** - Beautiful glassmorphism design that blends with dark themes  
+✅ **Upvote/Downvote System** - Reddit-style voting for posts and comments  
+✅ **Threaded Comments** - Nested replies up to 5 levels deep  
+✅ **Read More/Less** - Collapsible content with smooth animations  
+✅ **Social Sharing** - Twitter, Facebook, Reddit, Copy Link  
+✅ **Mobile Responsive** - Perfect on all devices  
+✅ **Fast Performance** - Optimized CSS/JS, GPU acceleration, lazy loading  
+✅ **Accessibility** - ARIA labels, keyboard shortcuts, reduced motion support  
 
-### The Problem
-- Traditional blog layouts hide comments at the bottom
-- Visitors rarely scroll down to engage
-- Low comment engagement hurts SEO (no User Generated Content)
-- Google favors sites with active UGC
+## Installation
 
-### The Solution
-- **Reddit-inspired UI** that makes comments impossible to miss
-- **40% of screen space** dedicated to comments section
-- **Upvote/downvote system** increases engagement
-- **Collapsible content** keeps readers engaged longer
-- **Mobile-first responsive design** for all devices
+1. The plugin is already installed at: `wp-content/plugins/reddit-style-posts/`
+2. Go to **WordPress Admin → Plugins**
+3. Find "Reddit Style Posts" and click **Activate**
 
-## ✨ Features
+## Configuration
 
-### 1. Reddit-Style Layout
-- **Voting sidebar**: Upvote/downvote buttons on every post
-- **Prominent comments**: Always visible, never hidden
-- **Collapsible content**: "Read More" expands full article
-- **Featured images**: Beautiful, responsive images
-- **Post metadata**: Author, time, category (Reddit-style)
+After activation, go to **WordPress Admin → Reddit Posts** to configure:
 
-### 2. Upvote/Downvote System
-- Track votes in custom database table
-- Guest voting (optional - can require login)
-- Vote on posts AND individual comments
-- Real-time vote count updates via AJAX
-- IP-based tracking for guests
-- User ID tracking for logged-in users
+### Settings
 
-### 3. Enhanced Comments
-- **Threaded replies**: Up to 5 levels deep
-- **Comment voting**: Upvote/downvote individual comments
-- **Author badges**: "OP" badge for post authors
-- **Time display**: "X minutes/hours ago" format
-- **Auto-save drafts**: Save comment drafts in local storage
-- **Smooth animations**: Professional UX
+- **Enable Voting System** - Allow users to upvote/downvote posts
+- **Show Vote Count** - Display the number of votes publicly
+- **Allow Guest Voting** - Let non-logged-in users vote (tracked by IP)
+- **Enable Share Buttons** - Show social share buttons
+- **Excerpt Length** - Number of words to show before "Read More" (default: 150)
+- **Comments Always Visible** - Keep comments section visible (Reddit-style)
 
-### 4. Share Buttons
-- Twitter, Facebook, Reddit sharing
-- Copy link to clipboard
-- Dropdown share menu
-- Mobile-friendly
+## Post Page Layout
 
-### 5. Mobile-First Design
-- Responsive at all breakpoints:
-  - Mobile: < 768px
-  - Tablet: 768px - 1024px
-  - Desktop: 1024px+
-- Touch-optimized buttons
-- Smooth scrolling
-- Dark mode support
+The plugin injects the following structure into your single post pages:
 
-### 6. Performance Features
-- Lazy loading images
-- Efficient AJAX calls
-- Minimal JavaScript footprint
-- CSS animations (hardware-accelerated)
-- Scroll progress indicator
-
-### 7. Admin Dashboard
-- Total votes statistics
-- Upvotes vs downvotes
-- Configuration settings
-- Easy enable/disable options
-
-## 📦 Installation
-
-1. Upload the `reddit-style-posts` folder to `/wp-content/plugins/`
-2. Activate the plugin through WordPress admin
-3. Go to **Reddit Posts** in the admin menu
-4. Configure your settings
-5. Visit any blog post to see the new design!
-
-## ⚙️ Configuration
-
-### Admin Settings (Reddit Posts menu)
-
-**Enable Voting System**
-- Toggle on/off for the entire voting feature
-- Default: ON
-
-**Show Vote Count**
-- Display number of votes publicly
-- Default: ON
-
-**Allow Guest Voting**
-- Let non-logged-in users vote (tracked by IP)
-- Default: OFF (login required)
-
-**Enable Share Buttons**
-- Show social sharing options
-- Default: ON
-
-**Excerpt Length**
-- Number of words shown before "Read More"
-- Default: 150 words
-- Range: 50-500
-
-**Comments Always Visible**
-- Keep comments prominent (Reddit-style)
-- Default: ON
-
-## 🎨 Design Features
-
-### Post Layout
 ```
-┌────────────────────────────────┐
-│ [↑]  VOTING    POST CONTENT   │
-│ 42   SIDEBAR   - Title         │
-│ [↓]            - Image         │
-│                - Excerpt       │
-│                - [Read More]   │
-│                - Actions       │
-└────────────────────────────────┘
-│ COMMENTS SECTION (Prominent)  │
-│ - Add Comment Form             │
-│ - Existing Comments            │
-│   [↑] Comment Text [Reply]     │
-│   42  → Nested Reply           │
-│   [↓]                          │
-└────────────────────────────────┘
+[Your Theme Header/Navigation - Unchanged]
+
+Main Content Area:
+  ├─ Featured Image
+  ├─ Article Title (from theme)
+  ├─ Article Meta (from theme)
+  ├─ Author, Date, Category (from theme)
+  ├─ Blog Post Content
+  ├─ Read More Button
+  ├─ Post Actions Bar (40% bottom space)
+  │   ├─ Upvote Button (with count)
+  │   ├─ Comment Button (with count)
+  │   └─ Share Button
+  └─ Reddit-Style Comments Section
+      ├─ Comment Header
+      ├─ Existing Comments (threaded)
+      └─ Comment Form
+
+[Your Theme Sidebar - Unchanged]
+[Your Theme Footer - Unchanged]
 ```
 
-### Color Scheme
-- **Primary**: #0079D3 (Reddit Blue)
-- **Upvote**: #FF4500 (Reddit Orange)
-- **Downvote**: #7193FF (Blue)
-- **Background**: #DAE0E6 (Light Gray)
-- **Cards**: #FFFFFF (White)
+## Usage
 
-### Typography
-- System fonts for fast loading
-- Font sizes scale with screen size
-- Readable line heights (1.5-1.6)
+### For Visitors
 
-## 💻 Technical Details
+1. **Upvoting**: Click the upvote button on posts or comments
+2. **Commenting**: Scroll to comments section, fill form, click "Post Comment"
+3. **Replying**: Click "Reply" under any comment to create threaded discussion
+4. **Sharing**: Click "Share" button to share on social media
 
-### Database Schema
+### Keyboard Shortcuts
 
-**Table**: `wp_rsp_votes`
+- Press `C` to focus the comment box
+
+### For Administrators
+
+- View voting statistics in **Admin → Reddit Posts**
+- Moderate comments as usual in **Admin → Comments**
+- All votes are stored in custom database table `wp_rsp_votes`
+
+## Technical Details
+
+### Database Table
+
+The plugin creates a table `wp_rsp_votes` with the following structure:
+
 ```sql
-id              BIGINT(20)      Auto-increment primary key
-post_id         BIGINT(20)      WordPress post ID
-comment_id      BIGINT(20)      Comment ID (0 for post votes)
-user_id         BIGINT(20)      User ID (0 for guests)
-user_ip         VARCHAR(100)    IP address for guest tracking
-vote_type       VARCHAR(10)     'upvote' or 'downvote'
-voted_at        DATETIME        Timestamp
+- id: Unique vote ID
+- post_id: The post being voted on
+- comment_id: The comment being voted on (0 for post votes)
+- user_id: Logged-in user ID (0 for guests)
+- user_ip: IP address (for guest voting)
+- vote_type: 'upvote' or 'downvote'
+- voted_at: Timestamp
 ```
 
-**Unique Index**: Prevents duplicate votes (post_id, comment_id, user_id, user_ip)
+### Files Structure
 
-### File Structure
 ```
 reddit-style-posts/
-├── reddit-style-posts.php    # Main plugin file
 ├── assets/
-│   ├── style.css             # Frontend styles
-│   ├── script.js             # Frontend JavaScript
-│   └── admin-style.css       # Admin dashboard styles
+│   ├── style.css          # Main stylesheet (dark theme compatible)
+│   ├── script.js          # JavaScript functionality
+│   └── admin-style.css    # Admin panel styles
 ├── templates/
-│   ├── single-post.php       # Custom post template
-│   └── comments.php          # Custom comments template
-└── README.md                 # This file
+│   ├── single-post.php    # Single post template (not used in injection mode)
+│   └── comments.php       # Custom comments template
+├── reddit-style-posts.php # Main plugin file
+└── README.md              # This file
 ```
 
-### WordPress Hooks Used
+### Hooks & Filters
 
-**Filters:**
-- `template_include` - Override single post template
-- `comments_template` - Custom comments template
+The plugin uses the following WordPress hooks:
 
-**Actions:**
-- `wp_enqueue_scripts` - Load frontend assets
-- `admin_enqueue_scripts` - Load admin assets
-- `admin_menu` - Add admin menu
-- `admin_init` - Register settings
-- `wp_insert_post` - Initialize post meta
-- `wp_ajax_*` - AJAX handlers for voting
+- `the_content` - Inject Reddit-style elements
+- `comments_template` - Replace comments with custom template
+- `wp_enqueue_scripts` - Load CSS/JS
+- `wp_ajax_rsp_vote` - Handle AJAX voting
 
-### AJAX Endpoints
+### Performance Optimizations
 
-1. **`rsp_vote`**
-   - Handle upvote/downvote for posts and comments
-   - Check permissions (logged in / guest voting)
-   - Toggle votes (click again to remove)
-   - Return updated vote counts
+✅ CSS/JS only loaded on single post pages  
+✅ GPU acceleration for smooth animations  
+✅ Intersection Observer for lazy loading  
+✅ Debounced comment draft auto-save  
+✅ Optimized SQL queries with proper indexing  
+✅ Reduced motion support for accessibility  
 
-2. **`rsp_load_comments`**
-   - Dynamically load comments
-   - For future pagination features
+## Customization
 
-### JavaScript Features
+### Styling
 
-- **jQuery-based** (uses WordPress's included jQuery)
-- **ES5 compatible** (works in older browsers)
-- **Namespaced** to avoid conflicts
-- **Event delegation** for dynamic content
-- **Local storage** for draft saving
-- **Intersection Observer** for lazy loading
-
-### Security Features
-
-✅ **Nonce verification** on all AJAX calls
-✅ **Prepared SQL statements** to prevent injection
-✅ **Capability checks** for admin functions
-✅ **Input sanitization** on all user input
-✅ **Output escaping** to prevent XSS
-✅ **Direct access prevention** in all PHP files
-
-## 🔧 Customization
-
-### For Developers
-
-#### Modify Vote Display
-Edit `templates/single-post.php` line ~25 to change vote button SVGs
-
-#### Change Color Scheme
-Edit `assets/style.css` - search for color codes:
-- `#0079D3` - Primary blue
-- `#FF4500` - Upvote orange
-- `#7193FF` - Downvote blue
-
-#### Adjust Excerpt Length Programmatically
-```php
-add_filter('option_rsp_excerpt_length', function($value) {
-    return 200; // Override to 200 words
-});
-```
-
-#### Custom Comment Callback
-The `rsp_custom_comment()` function in `templates/comments.php` can be modified for custom comment layouts.
-
-#### Add Custom Vote Types
-Extend the database to support additional vote types (e.g., "funny", "helpful")
-
-### CSS Classes Reference
-
-**Post Classes:**
-- `.rsp-container` - Main wrapper
-- `.rsp-post` - Post article
-- `.rsp-voting` - Vote sidebar
-- `.rsp-content-wrapper` - Main content
-- `.rsp-post-actions` - Action buttons
-
-**Comment Classes:**
-- `.rsp-comments-container` - Comments wrapper
-- `.rsp-comment` - Individual comment
-- `.rsp-comment-voting` - Comment vote buttons
-- `.rsp-comment-body` - Comment content
-
-## 📱 Responsive Breakpoints
+To customize the appearance, you can override the CSS by adding to your theme's `style.css`:
 
 ```css
-Mobile:     0px - 767px    (Base styles)
-Tablet:     768px - 1023px (Medium adjustments)
-Desktop:    1024px+        (Full features)
+/* Example: Change upvote button color */
+.rsp-upvote-action {
+  background: rgba(255, 215, 0, 0.1) !important;
+  border-color: rgba(255, 215, 0, 0.3) !important;
+  color: #ffd700 !important;
+}
+
+/* Example: Change comment background */
+.rsp-comment-body {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
 ```
 
-### Mobile Optimizations
-- Reduced padding and margins
-- Smaller vote buttons (24px)
-- Smaller fonts (14px base)
-- Stack layouts vertically
-- Touch-friendly tap targets (44px+)
+### Age Format Order
 
-### Desktop Enhancements
-- Larger vote buttons (28px)
-- More whitespace
-- Larger fonts (16px base)
-- Wider containers (980px max)
+The plugin displays timestamps in the following order:
+- Seconds ago (< 1 minute)
+- Minutes ago (< 1 hour)
+- Hours ago (< 1 day)
+- Days ago (< 1 week)
+- Weeks ago (< 1 month)
+- Months ago (< 1 year)
+- Years ago (>= 1 year)
 
-## 🎯 SEO Benefits
+This uses WordPress's built-in `human_time_diff()` function.
 
-1. **User Generated Content**: Comments are highly visible, encouraging more UGC
-2. **Engagement Metrics**: Longer time on page, more interactions
-3. **Social Signals**: Easy sharing increases social mentions
-4. **Internal Linking**: Comment discussions create natural links
-5. **Fresh Content**: Active comments keep content "fresh"
+## Troubleshooting
 
-## 🐛 Troubleshooting
+### Plugin not showing on posts
+
+1. Make sure the plugin is **activated**
+2. Visit a **single post page** (not homepage or archive)
+3. Check if it's a **'post'** post type (not page or custom post type)
+4. Clear your **browser cache** and **WordPress cache**
+
+### Voting not working
+
+1. Go to **Admin → Reddit Posts → Settings**
+2. Ensure "Enable Voting System" is checked
+3. If using guest voting, make sure "Allow Guest Voting" is enabled
+4. Check browser console for JavaScript errors
 
 ### Comments not showing
-1. Check if commenting is enabled: Settings → Discussion
-2. Ensure post has comments enabled
-3. Check theme compatibility
 
-### Votes not working
-1. Go to **Reddit Posts** settings
-2. Enable "Enable Voting System"
-3. Check if guest voting is enabled (if not logged in)
-4. Clear browser cache
+1. Ensure comments are **enabled** for the post
+2. Check if theme has conflicts with comment template
+3. Try disabling other comment-related plugins temporarily
 
-### Design conflicts
-1. Check for theme CSS conflicts
-2. Try switching to a default theme (Twenty Twenty-Four)
-3. Check browser console for JavaScript errors
+### Styling conflicts
 
-### Database errors
-1. Deactivate and reactivate the plugin
-2. Check database table exists: `wp_rsp_votes`
-3. Ensure user has database CREATE permissions
+1. Use browser DevTools to inspect elements
+2. Add custom CSS with `!important` if needed
+3. Check for theme CSS that overrides plugin styles
 
-## 🔄 Updates & Compatibility
+## Uninstallation
 
-- **Requires**: WordPress 5.0+
-- **Tested up to**: WordPress 6.4
-- **PHP Version**: 7.0+
-- **Mobile Browsers**: All modern browsers
-- **Desktop Browsers**: Chrome, Firefox, Safari, Edge
+To completely remove the plugin:
 
-## 📈 Performance
+1. Deactivate the plugin
+2. Delete the plugin files
+3. (Optional) Manually delete the `wp_rsp_votes` table from your database if you want to remove all voting data
 
-### Metrics
-- **Page Load**: Minimal impact (< 50KB total assets)
-- **AJAX Calls**: Optimized, debounced
-- **Database Queries**: Efficient with indexes
-- **Mobile Score**: 90+ on Google PageSpeed
+## Support
 
-### Best Practices
-- ✅ Minify CSS/JS in production
-- ✅ Use CDN for assets
-- ✅ Enable WordPress caching
-- ✅ Optimize images before upload
+For issues or questions:
+1. Check the troubleshooting section above
+2. Review the WordPress admin settings
+3. Check browser console for errors
+4. Clear all caches (browser + WordPress)
 
-## 🤝 Contributing Ideas
+## Credits
 
-Want to extend this plugin? Here are some ideas:
+- Inspired by Reddit's voting and comment system
+- Uses WordPress core functions for compatibility
+- Optimized for speed and accessibility
 
-1. **Comment sorting**: Top, New, Controversial
-2. **Comment search**: Search within comments
-3. **User profiles**: Track user voting history
-4. **Badges system**: Award badges for engagement
-5. **Email notifications**: Notify on replies
-6. **Markdown support**: Rich text in comments
-7. **GIF picker**: Add GIF support to comments
-8. **Awards system**: Reddit Gold-style awards
-9. **Moderation tools**: Flag inappropriate content
-10. **Analytics dashboard**: Track engagement metrics
+## Version
 
-## 📝 Changelog
-
-### Version 1.0.0
-- Initial release
-- Reddit-style post layout
-- Upvote/downvote system for posts and comments
-- Threaded comments (5 levels)
-- Mobile-first responsive design
-- Admin settings page
-- Share functionality
-- Dark mode support
-- Performance optimizations
-
-## 📄 License
-
-GPL2 - Same as WordPress
-
-## 🙏 Credits
-
-- Inspired by Reddit's mobile web interface
-- Built for WordPress community
-- Icons: Custom SVG icons
-- Fonts: System font stack
+**Version:** 1.0.0  
+**Requires:** WordPress 5.0 or higher  
+**PHP Version:** 7.0 or higher  
 
 ---
 
-**Made with ❤️ for better blog engagement**
-
-Need help? Found a bug? Want to contribute? Let us know!
-
-# reddit-style-wp-plugin
-# reddit-style-wp-plugin
+**Enjoy your Reddit-style blog posts!** 🚀

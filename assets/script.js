@@ -27,7 +27,7 @@
                 
                 // Scroll to top of post
                 $('html, body').animate({
-                    scrollTop: $('.rsp-post').offset().top - 20
+                    scrollTop: $('.rsp-content-injection').offset().top - 100
                 }, 300);
             } else {
                 // Expand
@@ -42,11 +42,11 @@
         // Voting System (Posts and Comments)
         // =====================================================================
         
-        $(document).on('click', '.rsp-vote-btn', function(e) {
+        $(document).on('click', '.rsp-vote-btn, .rsp-vote-action', function(e) {
             e.preventDefault();
             
             var $btn = $(this);
-            var $container = $btn.closest('.rsp-voting, .rsp-comment-voting');
+            var $container = $btn.closest('.rsp-voting, .rsp-comment-voting, .rsp-post-actions');
             var $voteCount = $container.find('.rsp-vote-count');
             var postId = $btn.data('post-id');
             var commentId = $btn.data('comment-id') || 0;
@@ -58,7 +58,7 @@
             }
             
             // Disable buttons during request
-            $container.find('.rsp-vote-btn').prop('disabled', true);
+            $container.find('.rsp-vote-btn, .rsp-vote-action').prop('disabled', true);
             
             $.ajax({
                 url: rspAjax.ajax_url,
@@ -79,8 +79,8 @@
                         $voteCount.attr('data-score', data.score);
                         
                         // Update button states
-                        $container.find('.rsp-upvote').removeClass('active');
-                        $container.find('.rsp-downvote').removeClass('active');
+                        $container.find('.rsp-upvote, .rsp-upvote-action').removeClass('active');
+                        $container.find('.rsp-downvote, .rsp-downvote-action').removeClass('active');
                         
                         if (data.action === 'added' || data.action === 'changed') {
                             $btn.addClass('active');
@@ -100,7 +100,7 @@
                     alert('An error occurred. Please try again.');
                 },
                 complete: function() {
-                    $container.find('.rsp-vote-btn').prop('disabled', false);
+                    $container.find('.rsp-vote-btn, .rsp-vote-action').prop('disabled', false);
                 }
             });
         });
