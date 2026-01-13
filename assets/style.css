@@ -289,22 +289,68 @@
   border: none;
   padding: 0;
   margin: 0;
+  display: block !important; /* Force display to prevent theme hiding */
+  visibility: visible !important; /* Ensure visibility */
+  opacity: 1 !important; /* Ensure opacity */
+  position: relative !important; /* Reset any absolute positioning */
+  width: 100% !important; /* Ensure full width */
+  max-height: none !important; /* Remove any height restrictions */
+  overflow: visible !important; /* Allow content to show */
 }
 
-/* Comment form at top styling */
-.rsp-comment-form-top {
+/* Ensure #comments wrapper is visible */
+#comments.rsp-comments {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Comment form at top styling - Force visibility */
+.rsp-comment-form-top,
+#respond.rsp-comment-form-top,
+.rsp-comment-respond,
+#respond {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
   margin-top: 24px;
   margin-bottom: 32px;
   padding-bottom: 24px;
   border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+  max-height: none !important;
+  overflow: visible !important;
 }
 
-.rsp-comment-form-top h3 {
-  font-size: 16px;
+/* WP Armour and other anti-spam plugin compatibility */
+#respond .comment-form,
+#respond form {
+  display: block !important;
+  visibility: visible !important;
+}
+
+#respond .comment-notes,
+#respond .logged-in-as {
+  font-size: 13px;
+  color: inherit;
+  opacity: 0.7;
+  margin-bottom: 15px;
+}
+
+.rsp-comment-form-top h3,
+#respond.rsp-comment-form-top h3,
+.rsp-comment-respond h3 {
+  font-size: 16px !important;
   font-weight: 600;
   margin-bottom: 16px;
   color: inherit;
   font-family: inherit;
+  display: block !important;
+  visibility: visible !important;
 }
 
 /* Comment List */
@@ -528,30 +574,49 @@
   margin: 0;
 }
 
-.rsp-comment-form label {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  color: inherit;
-  margin-bottom: 6px;
-  font-family: inherit;
+.rsp-comment-form label,
+#respond label {
+  display: block !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: inherit !important;
+  margin-bottom: 6px !important;
+  font-family: inherit !important;
+}
+
+/* Style comment form paragraphs */
+#respond p {
+  margin-bottom: 15px !important;
+}
+
+#respond .comment-form-comment,
+#respond .comment-form-author,
+#respond .comment-form-email,
+#respond .comment-form-url {
+  display: block !important;
+  width: 100% !important;
 }
 
 .rsp-comment-form input[type="text"],
 .rsp-comment-form input[type="email"],
 .rsp-comment-form input[type="url"],
-.rsp-comment-form textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid rgba(128, 128, 128, 0.3);
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: inherit;
+.rsp-comment-form textarea,
+#respond input[type="text"],
+#respond input[type="email"],
+#respond input[type="url"],
+#respond textarea {
+  width: 100% !important;
+  padding: 12px !important;
+  border: 1px solid rgba(128, 128, 128, 0.3) !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-family: inherit !important;
   transition: all 0.2s ease;
-  background: transparent;
-  color: inherit;
+  background: transparent !important;
+  color: inherit !important;
   -webkit-appearance: none;
   appearance: none;
+  box-sizing: border-box !important;
 }
 
 .rsp-comment-form input:focus,
@@ -566,28 +631,45 @@
   min-height: 120px;
 }
 
-.rsp-comment-form input[type="submit"] {
-  background: #0079d3;
-  color: #ffffff;
-  border: none;
-  border-radius: 9999px;
-  padding: 12px 32px;
-  font-size: 14px;
-  font-weight: 700;
+.rsp-comment-form input[type="submit"],
+#respond input[type="submit"],
+#respond button[type="submit"] {
+  background: #0079d3 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 9999px !important;
+  padding: 12px 32px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+    "Helvetica Neue", Arial, sans-serif !important;
   width: 100%;
   max-width: 200px;
 }
 
-.rsp-comment-form input[type="submit"]:hover {
-  background: #1484d6;
+.rsp-comment-form input[type="submit"]:hover,
+#respond input[type="submit"]:hover,
+#respond button[type="submit"]:hover {
+  background: #1484d6 !important;
 }
 
-.rsp-comment-form input[type="submit"]:active {
+.rsp-comment-form input[type="submit"]:active,
+#respond input[type="submit"]:active,
+#respond button[type="submit"]:active {
   transform: scale(0.98);
+}
+
+/* Hide WP Armour admin notice from regular view (keep functionality) */
+.rsp-comments #respond .wparmour-admin-notice {
+  font-size: 11px;
+  opacity: 0.5;
+  font-style: italic;
+  padding: 8px;
+  background: rgba(128, 128, 128, 0.05);
+  border-radius: 4px;
+  margin-top: 10px;
 }
 
 .required {

@@ -123,8 +123,27 @@ if (!function_exists('rsp_custom_comment')) {
 <div id="comments" class="rsp-comments">
     
     <?php
+    // Debug: Show comment form status - ALWAYS show if debug is on
+    if (get_option('rsp_debug_mode', '0') === '1' && current_user_can('manage_options')) {
+        echo '<div style="background: #e3f2fd; border: 2px solid #2196f3; padding: 15px; margin: 10px 0; border-radius: 5px; font-family: monospace; font-size: 12px; z-index: 9999; position: relative;">';
+        echo '<strong>💬 Comment Form Section Debug:</strong><br>';
+        echo '• This section is executing: Yes<br>';
+        echo '• comments_open(): ' . (comments_open() ? 'Yes' : 'No') . '<br>';
+        echo '• Current user ID: ' . get_current_user_id() . '<br>';
+        echo '• User can comment: ' . (comments_open() || current_user_can('moderate_comments') ? 'Yes' : 'No') . '<br>';
+        echo '• About to call comment_form(): ' . (comments_open() ? 'Yes' : 'No - comments closed') . '<br>';
+        echo '</div>';
+    }
+    
     // Comment form at the TOP
-    if (comments_open()):
+    if (comments_open()) {
+        // Debug before form
+        if (get_option('rsp_debug_mode', '0') === '1' && current_user_can('manage_options')) {
+            echo '<div style="background: #c8e6c9; border: 2px solid #4caf50; padding: 10px; margin: 5px 0; border-radius: 5px; font-family: monospace; font-size: 11px;">';
+            echo '✅ Calling comment_form() now...';
+            echo '</div>';
+        }
+        
         $commenter = wp_get_current_commenter();
         $req = get_option('require_name_email');
         $aria_req = ($req ? " aria-required='true'" : '');
@@ -155,7 +174,22 @@ if (!function_exists('rsp_custom_comment')) {
                 </p>',
             ),
         ));
-    endif;
+        
+        // Debug after form
+        if (get_option('rsp_debug_mode', '0') === '1' && current_user_can('manage_options')) {
+            echo '<div style="background: #fff9c4; border: 2px solid #fbc02d; padding: 10px; margin: 5px 0; border-radius: 5px; font-family: monospace; font-size: 11px;">';
+            echo '✅ comment_form() completed';
+            echo '</div>';
+        }
+        
+    } else {
+        // Debug if comments closed
+        if (get_option('rsp_debug_mode', '0') === '1' && current_user_can('manage_options')) {
+            echo '<div style="background: #ffcdd2; border: 2px solid #f44336; padding: 10px; margin: 5px 0; border-radius: 5px; font-family: monospace; font-size: 11px;">';
+            echo '❌ Comments are closed - form not rendered';
+            echo '</div>';
+        }
+    }
     ?>
     
     <?php if (have_comments()): ?>

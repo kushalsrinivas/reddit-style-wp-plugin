@@ -28,6 +28,7 @@ class Reddit_Style_Posts {
     private $votes_table;
     private $rendering_featured_image = false;
     private $loading_comments_in_injection = false;
+    private $comments_already_rendered = false;
     
     /**
      * Get singleton instance
@@ -115,6 +116,7 @@ class Reddit_Style_Posts {
         add_option('rsp_excerpt_length', '150');
         add_option('rsp_comments_visible', '1');
         add_option('rsp_guest_voting', '0');
+        add_option('rsp_debug_mode', '0');
     }
     
     /**
@@ -159,6 +161,19 @@ class Reddit_Style_Posts {
                 'post_id' => get_the_ID(),
                 'is_user_logged_in' => is_user_logged_in()
             ));
+            
+            // Add inline CSS to override Zox News theme styles
+            $current_theme = wp_get_theme();
+            if ($current_theme->get('Name') === 'Zox News' || $current_theme->get_template() === 'zox-news') {
+                wp_add_inline_style('rsp-style', '
+                    /* Zox News theme compatibility fixes */
+                    .rsp-comments-container { display: block !important; }
+                    #comments.rsp-comments { display: block !important; }
+                    .rsp-comment-respond, #respond { display: block !important; }
+                    .comment-form-comment { display: block !important; }
+                    .comment-form textarea { display: block !important; width: 100% !important; }
+                ');
+            }
         }
     }
     
@@ -196,7 +211,8 @@ class Reddit_Style_Posts {
             'rsp_enable_share_buttons',
             'rsp_excerpt_length',
             'rsp_comments_visible',
-            'rsp_guest_voting'
+            'rsp_guest_voting',
+            'rsp_debug_mode'
         );
         
         foreach ($settings as $setting) {
@@ -290,6 +306,14 @@ class Reddit_Style_Posts {
                                     <input type="checkbox" name="rsp_comments_visible" value="1" 
                                            <?php checked(get_option('rsp_comments_visible', '1'), '1'); ?>>
                                     <p class="description"><?php _e('Keep comments section visible (Reddit-style)', 'reddit-style-posts'); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php _e('Enable Debug Info', 'reddit-style-posts'); ?></th>
+                                <td>
+                                    <input type="checkbox" name="rsp_debug_mode" value="1" 
+                                           <?php checked(get_option('rsp_debug_mode', '0'), '1'); ?>>
+                                    <p class="description"><?php _e('Show debug information (only visible to logged-in admins)', 'reddit-style-posts'); ?></p>
                                 </td>
                             </tr>
                         </table>
@@ -431,10 +455,79 @@ class Reddit_Style_Posts {
             <!-- Comments Section - Loaded immediately after action buttons -->
             <div class="rsp-comments-container" id="rsp-comments">
                 <?php
-                // Load comments immediately after action buttons
-                if (comments_open() || get_comments_number()) {
+                // Load comments immediately after action buttons - directly include template
+                if ((comments_open() || get_comments_number()) && !$this->comments_already_rendered) {
                     $this->loading_comments_in_injection = true;
-                    comments_template();
+                    $this->comments_already_rendered = true; // Prevent duplicate rendering
+                    
+                    // Ensure WordPress globals are properly set for comments
+                    global $post, $wp_query, $withcomments;
+                    
+                    // Force comments to load even if theme doesn't set this
+                    $withcomments = true;
+                    
+                    // Make sure the post object is available
+                    if (!isset($post)) {
+                        $post = get_post($post_id);
+                    }
+                    
+                    // Setup postdata to ensure all template tags work correctly
+                    setup_postdata($post);
+                    
+                    // CRITICAL: Load comments into the query so have_comments() works
+                    // This is what makes comments actually appear in the template
+                    if (!isset($wp_query->comments) || empty($wp_query->comments)) {
+                        $comments = get_comments(array(
+                            'post_id' => $post_id,
+                            'status' => 'approve',
+                            'order' => 'ASC'
+                        ));
+                        $wp_query->comments = $comments;
+                        $wp_query->comment_count = count($comments);
+                        
+                        // Debug: Add visible info for admins only
+                        if (get_option('rsp_debug_mode', '0') === '1' && current_user_can('manage_options')) {
+                            echo '<div style="background: #fff3cd; border: 2px solid #ffc107; padding: 15px; margin: 10px 0; border-radius: 5px; font-family: monospace; font-size: 12px;">';
+                            echo '<strong>🔍 RSP Debug Info (Admin Only):</strong><br>';
+                            echo '• Comments loaded: ' . count($comments) . '<br>';
+                            echo '• Post ID: ' . $post_id . '<br>';
+                            echo '• Comments open: ' . (comments_open() ? 'Yes' : 'No') . '<br>';
+                            echo '• get_comments_number(): ' . get_comments_number() . '<br>';
+                            echo '• $wp_query->comment_count: ' . (isset($wp_query->comment_count) ? $wp_query->comment_count : 'Not set') . '<br>';
+                            echo '• have_comments(): ' . (have_comments() ? 'Yes' : 'No') . '<br>';
+                            echo '• Theme: ' . wp_get_theme()->get('Name') . '<br>';
+                            echo '• Active plugins: ' . count(get_option('active_plugins', array())) . '<br>';
+                            echo '</div>';
+                        }
+                    }
+                    
+                    // Directly include our custom template to ensure compatibility with all themes
+                    $custom_comments_template = RSP_PLUGIN_DIR . 'templates/comments.php';
+                    if (file_exists($custom_comments_template)) {
+                        include($custom_comments_template);
+                        
+                        // Debug info after template loads
+                        if (get_option('rsp_debug_mode', '0') === '1' && current_user_can('manage_options')) {
+                            echo '<div style="background: #d4edda; border: 2px solid #28a745; padding: 15px; margin: 10px 0; border-radius: 5px; font-family: monospace; font-size: 12px;">';
+                            echo '<strong>✅ Template loaded successfully</strong><br>';
+                            echo '• Template: ' . basename($custom_comments_template) . '<br>';
+                            echo '• File exists: Yes<br>';
+                            echo '• Template path: ' . esc_html($custom_comments_template) . '<br>';
+                            echo '</div>';
+                        }
+                    } else {
+                        // Fallback to WordPress default if our template doesn't exist
+                        comments_template();
+                        
+                        // Debug info for fallback
+                        if (get_option('rsp_debug_mode', '0') === '1' && current_user_can('manage_options')) {
+                            echo '<div style="background: #f8d7da; border: 2px solid #dc3545; padding: 15px; margin: 10px 0; border-radius: 5px; font-family: monospace; font-size: 12px;">';
+                            echo '<strong>⚠️ Using fallback template</strong><br>';
+                            echo '• Custom template not found at: ' . esc_html($custom_comments_template) . '<br>';
+                            echo '</div>';
+                        }
+                    }
+                    
                     $this->loading_comments_in_injection = false;
                 }
                 ?>
@@ -457,10 +550,16 @@ class Reddit_Style_Posts {
             return $html;
         }
         
-        // Block theme's featured image on single post pages where we're injecting our own
+        // Only block the CURRENT post's featured image on single post pages
+        // Don't block sidebar images, widget images, or other post thumbnails
         if (is_single() && get_post_type() === 'post' && in_the_loop() && is_main_query()) {
-            return ''; // Return empty to prevent duplicate
+            // Only block if this thumbnail is for the current post being displayed
+            $current_post_id = get_the_ID();
+            if ($post_id === $current_post_id) {
+                return ''; // Return empty to prevent duplicate of THIS post's featured image only
+            }
         }
+        
         return $html;
     }
     
@@ -468,20 +567,35 @@ class Reddit_Style_Posts {
      * Custom comments template
      */
     public function custom_comments_template($template) {
-        if (is_single() && get_post_type() === 'post') {
-            // If we're loading comments in our injection, use our template
-            if ($this->loading_comments_in_injection) {
-                $custom_template = RSP_PLUGIN_DIR . 'templates/comments.php';
-                if (file_exists($custom_template)) {
-                    return $custom_template;
-                }
-            } else {
-                // Prevent theme from loading comments separately
-                // Return an empty template to suppress theme's comments
-                return RSP_PLUGIN_DIR . 'templates/empty-comments.php';
-            }
+        // Only intercept on single post pages
+        if (!is_single() || get_post_type() !== 'post') {
+            return $template;
         }
-        return $template;
+        
+        // If we're currently loading comments in our injection, use our template
+        if ($this->loading_comments_in_injection) {
+            $custom_template = RSP_PLUGIN_DIR . 'templates/comments.php';
+            if (file_exists($custom_template)) {
+                return $custom_template;
+            }
+            return $template;
+        }
+        
+        // If comments have already been rendered by our plugin, suppress theme's version
+        if ($this->comments_already_rendered) {
+            return RSP_PLUGIN_DIR . 'templates/empty-comments.php';
+        }
+        
+        // Check if we're in the main loop and query - if so, suppress theme comments
+        // because we've already loaded them in our injection
+        if (in_the_loop() && is_main_query()) {
+            // Return empty template to prevent duplicate comments from theme
+            return RSP_PLUGIN_DIR . 'templates/empty-comments.php';
+        }
+        
+        // For any other case (like theme calling comments_template outside the loop),
+        // suppress it to prevent duplicates
+        return RSP_PLUGIN_DIR . 'templates/empty-comments.php';
     }
     
     /**
