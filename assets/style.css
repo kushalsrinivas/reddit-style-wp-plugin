@@ -143,7 +143,7 @@
   border-top: 1px solid rgba(128, 128, 128, 0.2);
   border-bottom: 1px solid rgba(128, 128, 128, 0.2);
   padding: 12px 0;
-  margin: 32px 0;
+  margin: 32px 0 0 0;
 }
 
 .rsp-post-actions {
@@ -288,11 +288,12 @@
   background: transparent;
   border: none;
   padding: 0;
-  margin: 40px 0 0 0;
+  margin: 0;
 }
 
 /* Comment form at top styling */
 .rsp-comment-form-top {
+  margin-top: 24px;
   margin-bottom: 32px;
   padding-bottom: 24px;
   border-bottom: 1px solid rgba(128, 128, 128, 0.15);

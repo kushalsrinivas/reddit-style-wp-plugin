@@ -14,93 +14,20 @@ if (post_password_required()) {
 }
 
 $rsp = Reddit_Style_Posts::get_instance();
-?>
 
-<div id="comments" class="rsp-comments">
-    
-    <?php
-    // Comment form at the TOP
-    if (comments_open()):
-        $commenter = wp_get_current_commenter();
-        $req = get_option('require_name_email');
-        $aria_req = ($req ? " aria-required='true'" : '');
-        
-        comment_form(array(
-            'class_container' => 'rsp-comment-respond rsp-comment-form-top',
-            'class_form' => 'rsp-comment-form',
-            'title_reply' => __('Post a Comment', 'reddit-style-posts'),
-            'title_reply_to' => __('Reply to %s', 'reddit-style-posts'),
-            'cancel_reply_link' => __('Cancel', 'reddit-style-posts'),
-            'label_submit' => __('Comment', 'reddit-style-posts'),
-            'comment_field' => '<p class="comment-form-comment">
-                <label for="comment">' . _x('Comment', 'noun', 'reddit-style-posts') . ($req ? ' <span class="required">*</span>' : '') . '</label>
-                <textarea id="comment" name="comment" cols="45" rows="6" aria-required="true" placeholder="What are your thoughts?"></textarea>
-            </p>',
-            'fields' => array(
-                'author' => '<p class="comment-form-author">
-                    <label for="author">' . __('Name', 'reddit-style-posts') . ($req ? ' <span class="required">*</span>' : '') . '</label>
-                    <input id="author" name="author" type="text" value="' . esc_attr($commenter['comment_author']) . '" size="30"' . $aria_req . ' placeholder="Your name" />
-                </p>',
-                'email' => '<p class="comment-form-email">
-                    <label for="email">' . __('Email', 'reddit-style-posts') . ($req ? ' <span class="required">*</span>' : '') . '</label>
-                    <input id="email" name="email" type="email" value="' . esc_attr($commenter['comment_author_email']) . '" size="30"' . $aria_req . ' placeholder="your@email.com" />
-                </p>',
-                'url' => '<p class="comment-form-url">
-                    <label for="url">' . __('Website', 'reddit-style-posts') . '</label>
-                    <input id="url" name="url" type="url" value="' . esc_attr($commenter['comment_author_url']) . '" size="30" placeholder="https://yourwebsite.com (optional)" />
-                </p>',
-            ),
-        ));
-    endif;
-    ?>
-    
-    <?php if (have_comments()): ?>
-        <ul class="rsp-comment-list">
-            <?php
-            wp_list_comments(array(
-                'style' => 'ul',
-                'callback' => 'rsp_custom_comment',
-                'max_depth' => 5,
-                'avatar_size' => 32,
-            ));
-            ?>
-        </ul>
-
-        <?php
-        // Comment pagination
-        if (get_comment_pages_count() > 1 && get_option('page_comments')):
-        ?>
-            <nav class="rsp-comment-navigation">
-                <div class="nav-previous"><?php previous_comments_link(__('← Older Comments', 'reddit-style-posts')); ?></div>
-                <div class="nav-next"><?php next_comments_link(__('Newer Comments →', 'reddit-style-posts')); ?></div>
-            </nav>
-        <?php endif; ?>
-
-    <?php else: ?>
-        <?php if (comments_open()): ?>
-            <p class="rsp-no-comments"><?php _e('No comments yet. Be the first to share your thoughts!', 'reddit-style-posts'); ?></p>
-        <?php endif; ?>
-    <?php endif; ?>
-
-    <?php if (!comments_open() && get_comments_number() && post_type_supports(get_post_type(), 'comments')): ?>
-        <p class="rsp-no-comments"><?php _e('Comments are closed.', 'reddit-style-posts'); ?></p>
-    <?php endif; ?>
-
-</div>
-
-<?php
 /**
- * Custom comment callback function
+ * Custom comment callback function - Define before use
  */
-function rsp_custom_comment($comment, $args, $depth) {
-    $rsp = Reddit_Style_Posts::get_instance();
-    $vote_counts = $rsp->get_vote_counts(get_the_ID(), $comment->comment_ID);
-    $user_vote = $rsp->get_user_vote(get_the_ID(), $comment->comment_ID);
-    $enable_voting = get_option('rsp_enable_voting', '1') === '1';
-    $show_vote_count = get_option('rsp_show_vote_count', '1') === '1';
-    
-    $GLOBALS['comment'] = $comment;
-    ?>
+if (!function_exists('rsp_custom_comment')) {
+    function rsp_custom_comment($comment, $args, $depth) {
+        $rsp = Reddit_Style_Posts::get_instance();
+        $vote_counts = $rsp->get_vote_counts(get_the_ID(), $comment->comment_ID);
+        $user_vote = $rsp->get_user_vote(get_the_ID(), $comment->comment_ID);
+        $enable_voting = get_option('rsp_enable_voting', '1') === '1';
+        $show_vote_count = get_option('rsp_show_vote_count', '1') === '1';
+        
+        $GLOBALS['comment'] = $comment;
+        ?>
     <li <?php comment_class('rsp-comment'); ?> id="comment-<?php comment_ID(); ?>">
         <article class="rsp-comment-body">
             
@@ -189,4 +116,78 @@ function rsp_custom_comment($comment, $args, $depth) {
         ?>
     <?php
     // Note: </li> is automatically closed by WordPress
+    }
 }
+?>
+
+<div id="comments" class="rsp-comments">
+    
+    <?php
+    // Comment form at the TOP
+    if (comments_open()):
+        $commenter = wp_get_current_commenter();
+        $req = get_option('require_name_email');
+        $aria_req = ($req ? " aria-required='true'" : '');
+        
+        comment_form(array(
+            'class_container' => 'rsp-comment-respond rsp-comment-form-top',
+            'class_form' => 'rsp-comment-form',
+            'title_reply' => __('Post a Comment', 'reddit-style-posts'),
+            'title_reply_to' => __('Reply to %s', 'reddit-style-posts'),
+            'cancel_reply_link' => __('Cancel', 'reddit-style-posts'),
+            'label_submit' => __('Comment', 'reddit-style-posts'),
+            'comment_field' => '<p class="comment-form-comment">
+                <label for="comment">' . _x('Comment', 'noun', 'reddit-style-posts') . ($req ? ' <span class="required">*</span>' : '') . '</label>
+                <textarea id="comment" name="comment" cols="45" rows="6" aria-required="true" placeholder="What are your thoughts?"></textarea>
+            </p>',
+            'fields' => array(
+                'author' => '<p class="comment-form-author">
+                    <label for="author">' . __('Name', 'reddit-style-posts') . ($req ? ' <span class="required">*</span>' : '') . '</label>
+                    <input id="author" name="author" type="text" value="' . esc_attr($commenter['comment_author']) . '" size="30"' . $aria_req . ' placeholder="Your name" />
+                </p>',
+                'email' => '<p class="comment-form-email">
+                    <label for="email">' . __('Email', 'reddit-style-posts') . ($req ? ' <span class="required">*</span>' : '') . '</label>
+                    <input id="email" name="email" type="email" value="' . esc_attr($commenter['comment_author_email']) . '" size="30"' . $aria_req . ' placeholder="your@email.com" />
+                </p>',
+                'url' => '<p class="comment-form-url">
+                    <label for="url">' . __('Website', 'reddit-style-posts') . '</label>
+                    <input id="url" name="url" type="url" value="' . esc_attr($commenter['comment_author_url']) . '" size="30" placeholder="https://yourwebsite.com (optional)" />
+                </p>',
+            ),
+        ));
+    endif;
+    ?>
+    
+    <?php if (have_comments()): ?>
+        <ul class="rsp-comment-list">
+            <?php
+            wp_list_comments(array(
+                'style' => 'ul',
+                'callback' => 'rsp_custom_comment',
+                'max_depth' => 5,
+                'avatar_size' => 32,
+            ));
+            ?>
+        </ul>
+
+        <?php
+        // Comment pagination
+        if (get_comment_pages_count() > 1 && get_option('page_comments')):
+        ?>
+            <nav class="rsp-comment-navigation">
+                <div class="nav-previous"><?php previous_comments_link(__('← Older Comments', 'reddit-style-posts')); ?></div>
+                <div class="nav-next"><?php next_comments_link(__('Newer Comments →', 'reddit-style-posts')); ?></div>
+            </nav>
+        <?php endif; ?>
+
+    <?php else: ?>
+        <?php if (comments_open()): ?>
+            <p class="rsp-no-comments"><?php _e('No comments yet. Be the first to share your thoughts!', 'reddit-style-posts'); ?></p>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <?php if (!comments_open() && get_comments_number() && post_type_supports(get_post_type(), 'comments')): ?>
+        <p class="rsp-no-comments"><?php _e('Comments are closed.', 'reddit-style-posts'); ?></p>
+    <?php endif; ?>
+
+</div>

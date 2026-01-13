@@ -26,6 +26,8 @@ class Reddit_Style_Posts {
     
     private static $instance = null;
     private $votes_table;
+    private $rendering_featured_image = false;
+    private $loading_comments_in_injection = false;
     
     /**
      * Get singleton instance
@@ -56,6 +58,9 @@ class Reddit_Style_Posts {
         
         // Inject Reddit-style elements into existing theme
         add_filter('the_content', array($this, 'inject_reddit_elements'), 10);
+        
+        // Prevent duplicate featured images in single posts
+        add_filter('post_thumbnail_html', array($this, 'remove_duplicate_thumbnail'), 10, 5);
         
         // Comments modifications
         add_filter('comments_template', array($this, 'custom_comments_template'));
@@ -314,16 +319,23 @@ class Reddit_Style_Posts {
         $enable_share = get_option('rsp_enable_share_buttons', '1') === '1';
         $excerpt_length = get_option('rsp_excerpt_length', '150');
         
+        // Remove featured image from content to prevent duplication
+        $content = preg_replace('/<img[^>]+wp-post-image[^>]*>/i', '', $content);
+        
         // Start output buffering
         ob_start();
         ?>
         
         <div class="rsp-content-injection">
             
-            <!-- Featured Image (if exists) -->
+            <!-- Featured Image (if exists) - displayed once here -->
             <?php if (has_post_thumbnail()): ?>
             <div class="rsp-featured-image">
-                <?php the_post_thumbnail('large'); ?>
+                <?php 
+                $this->rendering_featured_image = true;
+                the_post_thumbnail('large'); 
+                $this->rendering_featured_image = false;
+                ?>
             </div>
             <?php endif; ?>
             
@@ -416,10 +428,15 @@ class Reddit_Style_Posts {
                 </div>
             </div>
             
-            <!-- Comments Section -->
+            <!-- Comments Section - Loaded immediately after action buttons -->
             <div class="rsp-comments-container" id="rsp-comments">
                 <?php
-                // Comments will be loaded via the custom template
+                // Load comments immediately after action buttons
+                if (comments_open() || get_comments_number()) {
+                    $this->loading_comments_in_injection = true;
+                    comments_template();
+                    $this->loading_comments_in_injection = false;
+                }
                 ?>
             </div>
         </div>
@@ -427,8 +444,24 @@ class Reddit_Style_Posts {
         <?php
         $injected_content = ob_get_clean();
         
-        // Return empty string as we're injecting everything
+        // Return the injected content which includes everything
         return $injected_content;
+    }
+    
+    /**
+     * Remove duplicate featured image from theme
+     */
+    public function remove_duplicate_thumbnail($html, $post_id, $post_thumbnail_id, $size, $attr) {
+        // Allow our own featured image to render
+        if ($this->rendering_featured_image) {
+            return $html;
+        }
+        
+        // Block theme's featured image on single post pages where we're injecting our own
+        if (is_single() && get_post_type() === 'post' && in_the_loop() && is_main_query()) {
+            return ''; // Return empty to prevent duplicate
+        }
+        return $html;
     }
     
     /**
@@ -436,9 +469,16 @@ class Reddit_Style_Posts {
      */
     public function custom_comments_template($template) {
         if (is_single() && get_post_type() === 'post') {
-            $custom_template = RSP_PLUGIN_DIR . 'templates/comments.php';
-            if (file_exists($custom_template)) {
-                return $custom_template;
+            // If we're loading comments in our injection, use our template
+            if ($this->loading_comments_in_injection) {
+                $custom_template = RSP_PLUGIN_DIR . 'templates/comments.php';
+                if (file_exists($custom_template)) {
+                    return $custom_template;
+                }
+            } else {
+                // Prevent theme from loading comments separately
+                // Return an empty template to suppress theme's comments
+                return RSP_PLUGIN_DIR . 'templates/empty-comments.php';
             }
         }
         return $template;
