@@ -75,7 +75,7 @@ if (!function_exists('rsp_custom_comment')) {
                             <?php echo get_comment_author_link(); ?>
                         </span>
                         <?php if ($comment->user_id == get_post()->post_author): ?>
-                            <span class="rsp-author-badge">OP</span>
+                            <span class="rsp-author-badge">Author</span>
                         <?php endif; ?>
                         <span class="rsp-comment-date">
                             <?php echo human_time_diff(get_comment_time('U'), current_time('timestamp')) . ' ago'; ?>
@@ -144,10 +144,7 @@ if (!function_exists('rsp_custom_comment')) {
             echo '</div>';
         }
         
-        $commenter = wp_get_current_commenter();
-        $req = get_option('require_name_email');
-        $aria_req = ($req ? " aria-required='true'" : '');
-        
+        // Anonymous commenting - no name/email required
         comment_form(array(
             'class_container' => 'rsp-comment-respond rsp-comment-form-top',
             'class_form' => 'rsp-comment-form',
@@ -156,23 +153,13 @@ if (!function_exists('rsp_custom_comment')) {
             'cancel_reply_link' => __('Cancel', 'reddit-style-posts'),
             'label_submit' => __('Comment', 'reddit-style-posts'),
             'comment_field' => '<p class="comment-form-comment">
-                <label for="comment">' . _x('Comment', 'noun', 'reddit-style-posts') . ($req ? ' <span class="required">*</span>' : '') . '</label>
-                <textarea id="comment" name="comment" cols="45" rows="6" aria-required="true" placeholder="What are your thoughts?"></textarea>
+                <label for="comment">' . _x('Comment', 'noun', 'reddit-style-posts') . '</label>
+                <textarea id="comment" name="comment" cols="15" rows="1" aria-required="true" placeholder="What are your thoughts?"></textarea>
             </p>',
-            'fields' => array(
-                'author' => '<p class="comment-form-author">
-                    <label for="author">' . __('Name', 'reddit-style-posts') . ($req ? ' <span class="required">*</span>' : '') . '</label>
-                    <input id="author" name="author" type="text" value="' . esc_attr($commenter['comment_author']) . '" size="30"' . $aria_req . ' placeholder="Your name" />
-                </p>',
-                'email' => '<p class="comment-form-email">
-                    <label for="email">' . __('Email', 'reddit-style-posts') . ($req ? ' <span class="required">*</span>' : '') . '</label>
-                    <input id="email" name="email" type="email" value="' . esc_attr($commenter['comment_author_email']) . '" size="30"' . $aria_req . ' placeholder="your@email.com" />
-                </p>',
-                'url' => '<p class="comment-form-url">
-                    <label for="url">' . __('Website', 'reddit-style-posts') . '</label>
-                    <input id="url" name="url" type="url" value="' . esc_attr($commenter['comment_author_url']) . '" size="30" placeholder="https://yourwebsite.com (optional)" />
-                </p>',
-            ),
+            'fields' => array(), // Empty array = no name/email/url fields
+            'logged_in_as' => '', // Remove "logged in as" text
+            'comment_notes_before' => '', // Remove notes before form
+            'comment_notes_after' => '', // Remove notes after form
         ));
         
         // Debug after form

@@ -626,9 +626,17 @@
   box-shadow: 0 0 0 3px rgba(0, 121, 211, 0.1);
 }
 
-.rsp-comment-form textarea {
+/* .rsp-comment-form textarea {
   resize: vertical;
-  min-height: 120px;
+  min-height: 20px;
+} */
+.rsp-comment-form textarea#comment {
+  min-height: 36px;        /* overrides WP default */
+  height: 36px;            /* forces compact height */
+  padding: 8px 10px;
+  line-height: 1.4;
+  resize: vertical;        /* allow resize if user wants */
+  box-sizing: border-box;
 }
 
 .rsp-comment-form input[type="submit"],

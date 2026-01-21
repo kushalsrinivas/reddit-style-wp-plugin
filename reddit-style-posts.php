@@ -74,11 +74,21 @@ class Reddit_Style_Posts {
         add_action('wp_ajax_rsp_load_comments', array($this, 'ajax_load_comments'));
         add_action('wp_ajax_nopriv_rsp_load_comments', array($this, 'ajax_load_comments'));
         
+        // AJAX handlers for comment moderation
+        add_action('wp_ajax_rsp_delete_comment', array($this, 'ajax_delete_comment'));
+        add_action('wp_ajax_rsp_approve_comment', array($this, 'ajax_approve_comment'));
+        add_action('wp_ajax_rsp_unapprove_comment', array($this, 'ajax_unapprove_comment'));
+        add_action('wp_ajax_rsp_spam_comment', array($this, 'ajax_spam_comment'));
+        
         // Add vote counts to posts
         add_action('wp_insert_post', array($this, 'initialize_post_meta'), 10, 2);
         
         // Settings
         add_action('admin_init', array($this, 'register_settings'));
+        
+        // Allow anonymous commenting (no name/email required)
+        add_filter('pre_comment_approved', array($this, 'allow_anonymous_comments'), 10, 2);
+        add_filter('preprocess_comment', array($this, 'set_anonymous_author'));
     }
     
     /**
@@ -198,6 +208,16 @@ class Reddit_Style_Posts {
             array($this, 'admin_settings_page'),
             'dashicons-reddit',
             31
+        );
+        
+        // Add Comments Management submenu
+        add_submenu_page(
+            'reddit-style-posts',
+            __('Manage Comments', 'reddit-style-posts'),
+            __('Comments', 'reddit-style-posts'),
+            'moderate_comments',
+            'reddit-style-comments',
+            array($this, 'admin_comments_page')
         );
     }
     
@@ -421,11 +441,13 @@ class Reddit_Style_Posts {
                         </span>
                     </button>
                     
-                    <!-- Share Button - Authentic Reddit Icon -->
+                    <!-- Share Button - Clean Upload/Share Icon -->
                     <?php if ($enable_share): ?>
                     <button class="rsp-action-btn rsp-share-btn" id="rsp-share-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M17.162 0c-.924 0-1.758.359-2.385.995l-7.929 8.034c-1.26.03-2.395.488-3.283 1.288-.888.8-1.48 1.897-1.645 3.127-.03.223.135.426.359.426h1.748c.185 0 .344-.135.374-.315.179-.997.673-1.843 1.375-2.422.703-.579 1.555-.888 2.445-.888h.135l-.015.015 7.944 8.049c.612.621 1.461.995 2.385.995 1.867 0 3.383-1.516 3.383-3.383 0-.924-.359-1.758-.995-2.385l-3.353-3.353 3.338-3.338c.621-.612.995-1.461.995-2.385 0-1.867-1.516-3.383-3.383-3.383zm-7.222 14.436c-.389.03-.778.105-1.152.225h-.045c.09-.404.27-.768.539-1.062l3.772-3.817 1.305 1.305-3.772 3.817c-.21.21-.449.374-.703.494-.209.105-.434.18-.659.21-.03 0-.03.015-.045.015l-.015-.015c-.03-.015-.06-.015-.09-.015-.03 0-.045 0-.075.015-.03-.015-.045-.015-.06-.015zm7.207 1.455c.404-.389.868-.643 1.365-.748.015 0 .03 0 .03-.015.135-.03.27-.045.419-.045.09 0 .165.015.254.015.045 0 .09.015.12.015.135.015.27.045.389.075l.015.015c-.015 0-.015 0 0 0 .015 0 .015 0 0 0 .09.03.18.06.254.09 0 .015.015.015.015.015.015 0 .015.015.03.015.494.225.913.599 1.197 1.062l-3.818 3.817-1.305-1.305 3.832-3.832.015-.015c-.419.015-.823-.09-1.182-.359z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                            <polyline points="16 6 12 2 8 6"/>
+                            <line x1="12" y1="2" x2="12" y2="15"/>
                         </svg>
                         <span class="rsp-action-label">Share</span>
                     </button>
@@ -752,6 +774,395 @@ class Reddit_Style_Posts {
             $ip = $_SERVER['REMOTE_ADDR'];
         }
         return sanitize_text_field($ip);
+    }
+    
+    /**
+     * Admin Comments Management Page
+     */
+    public function admin_comments_page() {
+        // Handle bulk actions
+        if (isset($_POST['rsp_bulk_action']) && isset($_POST['comment_ids'])) {
+            check_admin_referer('rsp_bulk_comments');
+            
+            $action = sanitize_text_field($_POST['rsp_bulk_action']);
+            $comment_ids = array_map('intval', $_POST['comment_ids']);
+            
+            foreach ($comment_ids as $comment_id) {
+                switch ($action) {
+                    case 'approve':
+                        wp_set_comment_status($comment_id, 'approve');
+                        break;
+                    case 'unapprove':
+                        wp_set_comment_status($comment_id, 'hold');
+                        break;
+                    case 'spam':
+                        wp_spam_comment($comment_id);
+                        break;
+                    case 'delete':
+                        wp_delete_comment($comment_id, true);
+                        break;
+                }
+            }
+            
+            echo '<div class="notice notice-success"><p>' . __('Comments updated successfully.', 'reddit-style-posts') . '</p></div>';
+        }
+        
+        // Get filter parameters
+        $status = isset($_GET['comment_status']) ? sanitize_text_field($_GET['comment_status']) : 'all';
+        $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+        $per_page = 20;
+        
+        // Query comments
+        $args = array(
+            'number' => $per_page,
+            'offset' => ($paged - 1) * $per_page,
+            'orderby' => 'comment_date',
+            'order' => 'DESC',
+        );
+        
+        if ($status !== 'all') {
+            $args['status'] = $status;
+        }
+        
+        $comments_query = new WP_Comment_Query($args);
+        $comments = $comments_query->comments;
+        
+        // Get comment counts by status
+        $total_comments = wp_count_comments();
+        
+        ?>
+        <div class="wrap rsp-admin-wrap">
+            <h1><?php _e('Manage Comments', 'reddit-style-posts'); ?></h1>
+            
+            <ul class="subsubsub">
+                <li><a href="?page=reddit-style-comments&comment_status=all" <?php echo $status === 'all' ? 'class="current"' : ''; ?>>
+                    <?php _e('All', 'reddit-style-posts'); ?> <span class="count">(<?php echo $total_comments->total_comments; ?>)</span>
+                </a> |</li>
+                <li><a href="?page=reddit-style-comments&comment_status=approve" <?php echo $status === 'approve' ? 'class="current"' : ''; ?>>
+                    <?php _e('Approved', 'reddit-style-posts'); ?> <span class="count">(<?php echo $total_comments->approved; ?>)</span>
+                </a> |</li>
+                <li><a href="?page=reddit-style-comments&comment_status=hold" <?php echo $status === 'hold' ? 'class="current"' : ''; ?>>
+                    <?php _e('Pending', 'reddit-style-posts'); ?> <span class="count">(<?php echo $total_comments->moderated; ?>)</span>
+                </a> |</li>
+                <li><a href="?page=reddit-style-comments&comment_status=spam" <?php echo $status === 'spam' ? 'class="current"' : ''; ?>>
+                    <?php _e('Spam', 'reddit-style-posts'); ?> <span class="count">(<?php echo $total_comments->spam; ?>)</span>
+                </a></li>
+            </ul>
+            
+            <form method="post" id="rsp-comments-form">
+                <?php wp_nonce_field('rsp_bulk_comments'); ?>
+                
+                <div class="tablenav top">
+                    <div class="alignleft actions bulkactions">
+                        <select name="rsp_bulk_action">
+                            <option value=""><?php _e('Bulk Actions', 'reddit-style-posts'); ?></option>
+                            <option value="approve"><?php _e('Approve', 'reddit-style-posts'); ?></option>
+                            <option value="unapprove"><?php _e('Unapprove', 'reddit-style-posts'); ?></option>
+                            <option value="spam"><?php _e('Mark as Spam', 'reddit-style-posts'); ?></option>
+                            <option value="delete"><?php _e('Delete Permanently', 'reddit-style-posts'); ?></option>
+                        </select>
+                        <input type="submit" class="button action" value="<?php _e('Apply', 'reddit-style-posts'); ?>">
+                    </div>
+                </div>
+                
+                <table class="wp-list-table widefat fixed striped comments">
+                    <thead>
+                        <tr>
+                            <td class="manage-column column-cb check-column">
+                                <input type="checkbox" id="cb-select-all">
+                            </td>
+                            <th><?php _e('Author', 'reddit-style-posts'); ?></th>
+                            <th><?php _e('Comment', 'reddit-style-posts'); ?></th>
+                            <th><?php _e('Post', 'reddit-style-posts'); ?></th>
+                            <th><?php _e('Status', 'reddit-style-posts'); ?></th>
+                            <th><?php _e('Date', 'reddit-style-posts'); ?></th>
+                            <th><?php _e('Actions', 'reddit-style-posts'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($comments)): ?>
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 40px;">
+                                    <?php _e('No comments found.', 'reddit-style-posts'); ?>
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($comments as $comment): ?>
+                                <tr class="comment-<?php echo $comment->comment_ID; ?>" data-comment-id="<?php echo $comment->comment_ID; ?>">
+                                    <th class="check-column">
+                                        <input type="checkbox" name="comment_ids[]" value="<?php echo $comment->comment_ID; ?>">
+                                    </th>
+                                    <td>
+                                        <div class="comment-author">
+                                            <?php echo get_avatar($comment, 32); ?>
+                                            <strong><?php echo esc_html($comment->comment_author ?: 'Anonymous'); ?></strong>
+                                        </div>
+                                        <?php if ($comment->comment_author_email): ?>
+                                            <div style="font-size: 12px; color: #666;">
+                                                <?php echo esc_html($comment->comment_author_email); ?>
+                                            </div>
+                                        <?php endif; ?>
+                                        <div style="font-size: 12px; color: #999;">
+                                            IP: <?php echo esc_html($comment->comment_author_IP); ?>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div style="max-width: 400px;">
+                                            <?php echo wp_trim_words($comment->comment_content, 20); ?>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="<?php echo get_permalink($comment->comment_post_ID); ?>" target="_blank">
+                                            <?php echo get_the_title($comment->comment_post_ID); ?>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <?php
+                                        $status_labels = array(
+                                            '1' => '<span style="color: #46b450;">✓ Approved</span>',
+                                            '0' => '<span style="color: #ffb900;">⏱ Pending</span>',
+                                            'spam' => '<span style="color: #dc3232;">✗ Spam</span>',
+                                        );
+                                        echo $status_labels[$comment->comment_approved] ?? $comment->comment_approved;
+                                        ?>
+                                    </td>
+                                    <td>
+                                        <?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($comment->comment_date)); ?>
+                                    </td>
+                                    <td>
+                                        <div class="rsp-comment-actions">
+                                            <?php if ($comment->comment_approved === '0'): ?>
+                                                <button type="button" class="button button-small rsp-approve-btn" data-comment-id="<?php echo $comment->comment_ID; ?>">
+                                                    <?php _e('Approve', 'reddit-style-posts'); ?>
+                                                </button>
+                                            <?php elseif ($comment->comment_approved === '1'): ?>
+                                                <button type="button" class="button button-small rsp-unapprove-btn" data-comment-id="<?php echo $comment->comment_ID; ?>">
+                                                    <?php _e('Unapprove', 'reddit-style-posts'); ?>
+                                                </button>
+                                            <?php endif; ?>
+                                            
+                                            <?php if ($comment->comment_approved !== 'spam'): ?>
+                                                <button type="button" class="button button-small rsp-spam-btn" data-comment-id="<?php echo $comment->comment_ID; ?>">
+                                                    <?php _e('Spam', 'reddit-style-posts'); ?>
+                                                </button>
+                                            <?php endif; ?>
+                                            
+                                            <button type="button" class="button button-small button-link-delete rsp-delete-btn" data-comment-id="<?php echo $comment->comment_ID; ?>">
+                                                <?php _e('Delete', 'reddit-style-posts'); ?>
+                                            </button>
+                                            
+                                            <a href="<?php echo get_permalink($comment->comment_post_ID); ?>#comment-<?php echo $comment->comment_ID; ?>" 
+                                               target="_blank" class="button button-small">
+                                                <?php _e('View', 'reddit-style-posts'); ?>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+                
+                <?php
+                // Pagination
+                $total_pages = ceil($comments_query->found_comments / $per_page);
+                if ($total_pages > 1):
+                ?>
+                <div class="tablenav bottom">
+                    <div class="tablenav-pages">
+                        <?php
+                        echo paginate_links(array(
+                            'base' => add_query_arg('paged', '%#%'),
+                            'format' => '',
+                            'current' => $paged,
+                            'total' => $total_pages,
+                            'prev_text' => '&laquo;',
+                            'next_text' => '&raquo;',
+                        ));
+                        ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </form>
+        </div>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            // Select all checkboxes
+            $('#cb-select-all').on('change', function() {
+                $('input[name="comment_ids[]"]').prop('checked', $(this).prop('checked'));
+            });
+            
+            // Individual comment actions
+            $('.rsp-approve-btn').on('click', function() {
+                moderateComment($(this).data('comment-id'), 'approve');
+            });
+            
+            $('.rsp-unapprove-btn').on('click', function() {
+                moderateComment($(this).data('comment-id'), 'unapprove');
+            });
+            
+            $('.rsp-spam-btn').on('click', function() {
+                if (confirm('<?php _e('Are you sure you want to mark this as spam?', 'reddit-style-posts'); ?>')) {
+                    moderateComment($(this).data('comment-id'), 'spam');
+                }
+            });
+            
+            $('.rsp-delete-btn').on('click', function() {
+                if (confirm('<?php _e('Are you sure you want to permanently delete this comment?', 'reddit-style-posts'); ?>')) {
+                    moderateComment($(this).data('comment-id'), 'delete');
+                }
+            });
+            
+            function moderateComment(commentId, action) {
+                var $row = $('.comment-' + commentId);
+                $row.css('opacity', '0.5');
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'rsp_' + action + '_comment',
+                        comment_id: commentId,
+                        nonce: '<?php echo wp_create_nonce('rsp_moderate_comment'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            if (action === 'delete') {
+                                $row.fadeOut(300, function() { $(this).remove(); });
+                            } else {
+                                location.reload();
+                            }
+                        } else {
+                            alert(response.data || '<?php _e('Action failed.', 'reddit-style-posts'); ?>');
+                            $row.css('opacity', '1');
+                        }
+                    },
+                    error: function() {
+                        alert('<?php _e('An error occurred.', 'reddit-style-posts'); ?>');
+                        $row.css('opacity', '1');
+                    }
+                });
+            }
+        });
+        </script>
+        
+        <style>
+        .rsp-comment-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .rsp-comment-actions .button {
+            margin: 0;
+        }
+        .comment-author {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+        .comment-author img {
+            border-radius: 50%;
+        }
+        </style>
+        <?php
+    }
+    
+    /**
+     * AJAX: Delete comment
+     */
+    public function ajax_delete_comment() {
+        check_ajax_referer('rsp_moderate_comment', 'nonce');
+        
+        if (!current_user_can('moderate_comments')) {
+            wp_send_json_error(__('You do not have permission to delete comments.', 'reddit-style-posts'));
+        }
+        
+        $comment_id = intval($_POST['comment_id']);
+        
+        if (wp_delete_comment($comment_id, true)) {
+            wp_send_json_success(__('Comment deleted successfully.', 'reddit-style-posts'));
+        } else {
+            wp_send_json_error(__('Failed to delete comment.', 'reddit-style-posts'));
+        }
+    }
+    
+    /**
+     * AJAX: Approve comment
+     */
+    public function ajax_approve_comment() {
+        check_ajax_referer('rsp_moderate_comment', 'nonce');
+        
+        if (!current_user_can('moderate_comments')) {
+            wp_send_json_error(__('You do not have permission to approve comments.', 'reddit-style-posts'));
+        }
+        
+        $comment_id = intval($_POST['comment_id']);
+        
+        if (wp_set_comment_status($comment_id, 'approve')) {
+            wp_send_json_success(__('Comment approved successfully.', 'reddit-style-posts'));
+        } else {
+            wp_send_json_error(__('Failed to approve comment.', 'reddit-style-posts'));
+        }
+    }
+    
+    /**
+     * AJAX: Unapprove comment
+     */
+    public function ajax_unapprove_comment() {
+        check_ajax_referer('rsp_moderate_comment', 'nonce');
+        
+        if (!current_user_can('moderate_comments')) {
+            wp_send_json_error(__('You do not have permission to unapprove comments.', 'reddit-style-posts'));
+        }
+        
+        $comment_id = intval($_POST['comment_id']);
+        
+        if (wp_set_comment_status($comment_id, 'hold')) {
+            wp_send_json_success(__('Comment unapproved successfully.', 'reddit-style-posts'));
+        } else {
+            wp_send_json_error(__('Failed to unapprove comment.', 'reddit-style-posts'));
+        }
+    }
+    
+    /**
+     * AJAX: Mark comment as spam
+     */
+    public function ajax_spam_comment() {
+        check_ajax_referer('rsp_moderate_comment', 'nonce');
+        
+        if (!current_user_can('moderate_comments')) {
+            wp_send_json_error(__('You do not have permission to mark comments as spam.', 'reddit-style-posts'));
+        }
+        
+        $comment_id = intval($_POST['comment_id']);
+        
+        if (wp_spam_comment($comment_id)) {
+            wp_send_json_success(__('Comment marked as spam.', 'reddit-style-posts'));
+        } else {
+            wp_send_json_error(__('Failed to mark comment as spam.', 'reddit-style-posts'));
+        }
+    }
+    
+    /**
+     * Allow anonymous comments (bypass name/email requirement)
+     */
+    public function allow_anonymous_comments($approved, $commentdata) {
+        return $approved;
+    }
+    
+    /**
+     * Set default anonymous author for comments without name
+     */
+    public function set_anonymous_author($commentdata) {
+        if (empty($commentdata['comment_author'])) {
+            $commentdata['comment_author'] = 'Anonymous';
+        }
+        if (empty($commentdata['comment_author_email'])) {
+            $commentdata['comment_author_email'] = '';
+        }
+        return $commentdata;
     }
 }
 
